@@ -192,9 +192,11 @@ public class SwipeTile implements Renderable, SwipeListener {
 			boolean justTouched = (!wasTouched && input.isTouched());
 			
 			// If the input just touched,
-			if (justTouched)
+			if (justTouched) {
+				System.out.println("Just touched. ID : " + getMaxTouchID(input));
 				// Trigger the private onTouch event.
-				this.onTouch(touchPosition, input);
+				this.onTouch(touchPosition, input, getMaxTouchID(input));
+			}
 			
 			// If our current swipe is created and has not expired,
 			if (currentSwipe != null && !currentSwipe.expired())
@@ -434,6 +436,18 @@ public class SwipeTile implements Renderable, SwipeListener {
 		return new Vector2(input.getX(), input.getY());
 	}
 	
+	private int getMaxTouchID(InputProxy input) {
+		if (!input.isTouched())
+			throw new RuntimeException("Cannot getMaxTouchID, the screen is not touched.");
+		
+		int maxTouchID = 0;
+		for (int i = 0; i != 5; i ++)
+			if (input.isTouched(i))
+				maxTouchID = i;
+		
+		return maxTouchID;
+	}
+	
 	/* Update the SwipeTile's translation animation. */
 	private void updateTranslationAnimation() {
 		final float
@@ -447,7 +461,7 @@ public class SwipeTile implements Renderable, SwipeListener {
 		setPosition(newX, newY);
 	}
 	
-	private void onTouch(Vector2 touchPosition, InputProxy input) {
+	private void onTouch(Vector2 touchPosition, InputProxy input, int touchID) {
 		// If the input just touched and the touch is within our SwipeTile's bounds,
 		if (this.contains(touchPosition)) {
 			// Define the tolerance for swipe inaccuracy in degrees.
@@ -459,7 +473,7 @@ public class SwipeTile implements Renderable, SwipeListener {
 			
 			// Create a new Swipe object with an origin of our touchPosition, updated with our input,
 			// and with a maximum length of requiredSwipeMagnitude.
-			currentSwipe = new Swipe(touchPosition, input, requiredSwipeMagnitude) {
+			currentSwipe = new Swipe(input, touchID, touchPosition, requiredSwipeMagnitude) {
 				// Listen for the expiration of our Swipe, it expires when the terminal magnitude is met.
 				@Override
 				public void onExpire() {

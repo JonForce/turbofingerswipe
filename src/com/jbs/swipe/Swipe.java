@@ -9,14 +9,16 @@ public class Swipe {
 	private InputProxy input;
 	private boolean expired = false;
 	private float maxMagnitude;
+	private final int swipeID;
 	
-	public Swipe(Vector2 origin, InputProxy input, float maxMagnitude) {
+	public Swipe(InputProxy input, int swipeID, Vector2 origin, float maxMagnitude) {
 		if (!input.isTouched())
 			throw new RuntimeException("Input is not touched, Swipe cannot be constructed.");
 		if (maxMagnitude <= 0)
 			throw new RuntimeException("maxMagnitude is <= 0, Swipe cannot be constructed.");
-		this.origin = origin;
 		this.input = input;
+		this.swipeID = swipeID;
+		this.origin = origin;
 		this.maxMagnitude = maxMagnitude;
 	}
 	
@@ -24,7 +26,7 @@ public class Swipe {
 	 * Expire the swipe if the input is no longer touched.
 	 */
 	public void updateExpiration() {
-		if ((!input.isTouched() || magnitude() >= maxMagnitude) && !expired())
+		if ((!input.isTouched(swipeID) || magnitude() >= maxMagnitude) && !expired())
 			expire();
 	}
 	
@@ -99,7 +101,7 @@ public class Swipe {
 	 * @return a new Vector2 constructed with the input's x and y screen coordinates.
 	 */
 	protected final Vector2 positionOf(InputProxy input) {
-		return new Vector2(input.getX(), input.getY());
+		return new Vector2(input.getX(swipeID), input.getY(swipeID));
 	}
 	
 	/*
