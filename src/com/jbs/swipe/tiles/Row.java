@@ -6,6 +6,7 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.TouchManager;
 
 public class Row implements SwipeListener, Renderable, Updatable {
 	
@@ -25,6 +26,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	/* The positions on the Screen of the slots. */
 	private Vector2[] slotPositions;
 	private SwipeTile[] tiles;
+	private TouchManager touchManager;
 	
 	// The center of the Row.
 	private final Vector2 center;
@@ -151,6 +153,12 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		collapseTile(tileToDissolve, this.direction);
 	}
 	
+	public final void setTouchManager(TouchManager manager) {
+		this.touchManager = manager;
+		for (SwipeTile tile : this.tiles)
+			manager.addListener(tile);
+	}
+	
 	/* Contract the Row in the specified direction to be have one less Tile. */
 	public final void contract(int direction) {
 		if (numberOfTiles <= 1)
@@ -254,6 +262,9 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		tile.scale(scaleX, scaleY);
 		// Set the Tile to notify the Row of all Swipe events.
 		tile.setSwipeListener(this);
+		
+		if (touchManager != null)
+			touchManager.addListener(tile);
 		
 		return tile;
 	}

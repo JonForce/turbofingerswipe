@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.TouchManager;
 import com.jbs.swipe.gui.Score;
 
 public abstract class Level implements Renderable {
@@ -13,6 +14,7 @@ public abstract class Level implements Renderable {
 	/* The Level's score-keeping and score-rendering mechanism. */
 	private Score score;
 	private Renderable background;
+	private TouchManager touchManager;
 	
 	public Level(Game game) {
 		this.game = game;
@@ -34,6 +36,7 @@ public abstract class Level implements Renderable {
 	/* Initialize the Level's base components. */
 	public final void initialize() {
 		this.score = new Score(game());
+		this.touchManager = new TouchManager(4);
 	}
 	
 	/* Render the Level's background to the specified SpriteBatch. */
@@ -64,6 +67,10 @@ public abstract class Level implements Renderable {
 	/* Increment the Level's score. */
 	public final void incrementScore() {
 		this.score.increment();
+	}
+	
+	public final TouchManager touchManager() {
+		return this.touchManager;
 	}
 	
 	/* @return the Level's score as an integer. */

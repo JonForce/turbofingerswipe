@@ -14,8 +14,9 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
+import com.jbs.swipe.TouchListener;
 
-public class SwipeTile implements Renderable, SwipeListener {
+public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	
 	public final String
 		INCORRECT_SWIPE_SOUND_SOURCE = "assets/SFX/Incorrect.wav",
@@ -63,9 +64,7 @@ public class SwipeTile implements Renderable, SwipeListener {
 		requiredSwipeMagnitude; // The required swipe magnitude
 	
 	// State data, used to determine when to trigger events.
-	private boolean
-		wasExpired = false,
-		wasTouched = true;
+	private boolean wasExpired = false;
 	
 	private Swipe currentSwipe;
 	private SwipeListener swipeListener;
@@ -185,19 +184,6 @@ public class SwipeTile implements Renderable, SwipeListener {
 			setState(lifecycle[lifecycleStage()]);
 		
 		if (!expired()) {
-			// Define the touch position as the position of our input.
-			Vector2 touchPosition = positionOf(input);
-			
-			// True if the input was not touched last update but is currently touched.
-			boolean justTouched = (!wasTouched && input.isTouched());
-			
-			// If the input just touched,
-			if (justTouched) {
-				System.out.println("Just touched. ID : " + getMaxTouchID(input));
-				// Trigger the private onTouch event.
-				this.onTouch(touchPosition, input, getMaxTouchID(input));
-			}
-			
 			// If our current swipe is created and has not expired,
 			if (currentSwipe != null && !currentSwipe.expired())
 				// Update the swipe and potentially expire it.
@@ -211,7 +197,57 @@ public class SwipeTile implements Renderable, SwipeListener {
 		
 		// Save the state of our SwipeTile.
 		wasExpired = expired();
-		wasTouched = input.isTouched();
+	}
+	
+	@Override
+	public void onTouch(Vector2 touchPosition, int touchID, InputProxy input) {
+		// If the input just touched and the touch is within our SwipeTile's bounds,
+		if (this.contains(touchPosition)) {
+			// Define the tolerance for swipe inaccuracy in degrees.
+			final float toleranceDegrees = swipeAngleTolerance;
+			// Define the SwipeTile to use.
+			final SwipeTile tile = this;
+			// Define the Correctly-Swiped State.
+			final TileState correctlySwipedState = TileState.CORRECTLY_SWIPED;
+			
+			// Create a new Swipe object with an origin of our touchPosition, updated with our input,
+			// and with a maximum length of requiredSwipeMagnitude.
+			currentSwipe = new Swipe(input, touchID, touchPosition, requiredSwipeMagnitude) {
+				// Listen for the expiration of our Swipe, it expires when the terminal magnitude is met.
+				@Override
+				public void onExpire() {
+					// If the Swipe's angle matches our required angle within the tolerance,
+					if (this.checkAngle(requiredSwipeDirection, toleranceDegrees)) {
+						// We have determined the swipe to be correct.
+						
+						// Play the correct-swipe sound.
+						game.audio().playSound(Gdx.files.internal(CORRECT_SWIPE_SOUND_SOURCE), volume);
+						// Set the SwipeTile to it's correctly-swiped State.
+						tile.setState(correctlySwipedState);
+						// Create a new TimerTask
+						TimerTask callback = new TimerTask() {
+							@Override
+							public void run() {
+								swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
+							}
+						};
+						new Timer().schedule(callback, (long)arrowGreenTime());
+					} else {
+						// We have determined the swipe to have been incorrect.
+						
+						// Play the incorrect-swipe sound.
+						game.audio().playSound(Gdx.files.internal(INCORRECT_SWIPE_SOUND_SOURCE), volume);
+						// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
+						swipeListener.onIncorrectSwipe(tile);
+					}
+				}
+			};
+		}
+	}
+
+	@Override
+	public void onRelease(int touchID) {
+		
 	}
 	
 	/* Reset the SwipeTile to it's state when it was constructed (Excluding the volume). */
@@ -219,7 +255,6 @@ public class SwipeTile implements Renderable, SwipeListener {
 		// Reset the SwipeTile's state data.
 		startTime = System.nanoTime();
 		wasExpired = false;
-		wasTouched = false;
 		// Reset the Tile's State.
 		tileState = defaultTileState;
 		// Refresh the arrow's Texture.
@@ -432,20 +467,8 @@ public class SwipeTile implements Renderable, SwipeListener {
 	/*
 	 * @return a new Vector2 constructed with the input's x and y screen coordinates.
 	 */
-	protected final Vector2 positionOf(InputProxy input) {
-		return new Vector2(input.getX(), input.getY());
-	}
-	
-	private int getMaxTouchID(InputProxy input) {
-		if (!input.isTouched())
-			throw new RuntimeException("Cannot getMaxTouchID, the screen is not touched.");
-		
-		int maxTouchID = 0;
-		for (int i = 0; i != 5; i ++)
-			if (input.isTouched(i))
-				maxTouchID = i;
-		
-		return maxTouchID;
+	protected final Vector2 positionOf(InputProxy input, int touchID) {
+		return new Vector2(input.getX(touchID), input.getY(touchID));
 	}
 	
 	/* Update the SwipeTile's translation animation. */
@@ -459,51 +482,6 @@ public class SwipeTile implements Renderable, SwipeListener {
 			newY = this.y() + (deltaY * translationDamping);
 		// Set the SwipeTile to the new-coordinates.
 		setPosition(newX, newY);
-	}
-	
-	private void onTouch(Vector2 touchPosition, InputProxy input, int touchID) {
-		// If the input just touched and the touch is within our SwipeTile's bounds,
-		if (this.contains(touchPosition)) {
-			// Define the tolerance for swipe inaccuracy in degrees.
-			final float toleranceDegrees = swipeAngleTolerance;
-			// Define the SwipeTile to use.
-			final SwipeTile tile = this;
-			// Define the Correctly-Swiped State.
-			final TileState correctlySwipedState = TileState.CORRECTLY_SWIPED;
-			
-			// Create a new Swipe object with an origin of our touchPosition, updated with our input,
-			// and with a maximum length of requiredSwipeMagnitude.
-			currentSwipe = new Swipe(input, touchID, touchPosition, requiredSwipeMagnitude) {
-				// Listen for the expiration of our Swipe, it expires when the terminal magnitude is met.
-				@Override
-				public void onExpire() {
-					// If the Swipe's angle matches our required angle within the tolerance,
-					if (this.checkAngle(requiredSwipeDirection, toleranceDegrees)) {
-						// We have determined the swipe to be correct.
-						
-						// Play the correct-swipe sound.
-						game.audio().playSound(Gdx.files.internal(CORRECT_SWIPE_SOUND_SOURCE), volume);
-						// Set the SwipeTile to it's correctly-swiped State.
-						tile.setState(correctlySwipedState);
-						// Create a new TimerTask
-						TimerTask callback = new TimerTask() {
-							@Override
-							public void run() {
-								swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
-							}
-						};
-						new Timer().schedule(callback, (long)arrowGreenTime());
-					} else {
-						// We have determined the swipe to have been incorrect.
-						
-						// Play the incorrect-swipe sound.
-						game.audio().playSound(Gdx.files.internal(INCORRECT_SWIPE_SOUND_SOURCE), volume);
-						// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
-						swipeListener.onIncorrectSwipe(tile);
-					}
-				}
-			};
-		}
 	}
 	
 	/*

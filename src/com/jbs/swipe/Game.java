@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.io.AudioProxy;
 import com.jbs.framework.rendering.Renderable;
-import com.jbs.framework.rendering.Screen;
 import com.jbs.swipe.gui.LoadingScreen;
 import com.jbs.swipe.levels.Level;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
@@ -46,14 +45,10 @@ public class Game extends Application {
 	
 	private boolean created = false; // True when the Game's resources have been initialized.
 	
-	public Game(Screen screen) {
-		super(screen);
+	public Game(int virtualWidth, int virtualHeight) {
+		super(virtualWidth, virtualHeight);
 		if (IS_STRICT)
 			System.out.println("Warning! Game IS_STRICT");
-	}
-	
-	public Game(int actualWidth, int actualHeight, int virtualWidth, int virtualHeight) {
-		this(new Screen(actualWidth, actualHeight, virtualWidth, virtualHeight));
 	}
 	
 	/* Reset the Game to it's MainMenuState. Throws RuntimeException if the Game
