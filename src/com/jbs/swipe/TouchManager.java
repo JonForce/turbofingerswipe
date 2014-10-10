@@ -22,7 +22,6 @@ public final class TouchManager {
 	 * Clear the TouchManager's TouchListener list.
 	 */
 	public void clearListeners() {
-		System.out.println("List clear requested.");
 		this.touchListeners.clear();
 	}
 	
@@ -30,7 +29,6 @@ public final class TouchManager {
 	 * @param listener The Listener to notify of touch events.
 	 */
 	public void addListener(TouchListener listener) {
-		System.out.println("List addition requested.");
 		touchListeners.add(listener);
 	}
 	
@@ -46,7 +44,6 @@ public final class TouchManager {
 	 * @param input 
 	 */
 	public void update(InputProxy input) {
-		System.out.println("TouchListeners : " + touchListeners.size());
 		final boolean[] currentTouchState = getTouchStateOf(input);
 		for (int i = 0; i != MAX_TOUCHES; i ++)
 			// If input[i] is currently touched and was not previously touched,

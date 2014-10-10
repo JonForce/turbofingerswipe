@@ -2,6 +2,9 @@ package com.jbs.swipe;
 
 import java.util.Random;
 
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenManager;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
@@ -11,7 +14,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.io.AudioProxy;
+import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
+import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.gui.LoadingScreen;
 import com.jbs.swipe.levels.Level;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
@@ -35,6 +40,7 @@ public class Game extends Application {
 	protected AudioProxy audioProxy;
 	protected Random random;
 	
+	private TweenManager tweenManager;
 	private LoadingState loadingState;
 	private PausedState pausedState;
 	private Renderable loadingScreen;
@@ -43,6 +49,7 @@ public class Game extends Application {
 	private Level level;
 	private GameOverState gameOverState;
 	
+	private long lastRenderTime;
 	private boolean created = false; // True when the Game's resources have been initialized.
 	
 	public Game(int virtualWidth, int virtualHeight) {
@@ -170,6 +177,14 @@ public class Game extends Application {
 	}
 	
 	@Override
+	public void render() {
+		super.render();
+		final long currentTime = System.currentTimeMillis();
+		this.tweenManager().update(currentTime - lastRenderTime);
+		this.lastRenderTime = currentTime;
+	}
+	
+	@Override
 	public final void create() {
 		super.create();
 		
@@ -182,6 +197,11 @@ public class Game extends Application {
 		
 		// Mark the Game as created.
 		created = true;
+		lastRenderTime = System.currentTimeMillis();
+	}
+	
+	public final TweenManager tweenManager() {
+		return this.tweenManager;
 	}
 	
 	/* @return true if the Game's .create() method has been called. */
@@ -248,6 +268,9 @@ public class Game extends Application {
 		// Mute the Audio if it was muted the last time the Game exited.
 		if (preferences.getBoolean("is_muted"))
 			audio().mute();
+		
+		tweenManager = new TweenManager();
+		Tween.registerAccessor(Graphic.class, new GraphicAccessor());
 	}
 	
 	/* Initialize the Game's ApplicationStates. */

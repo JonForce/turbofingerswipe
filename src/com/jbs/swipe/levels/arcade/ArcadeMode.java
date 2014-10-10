@@ -40,6 +40,7 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 
 	@Override
 	public void reset() {
+		System.out.println("reset");
 		// Reset the score.
 		super.resetScore();
 		// Reset failure condition.
@@ -55,6 +56,9 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		for (Row row : rows)
 			if (row != null)
 				row.setTouchManager(super.touchManager());
+		
+		for (Row row : rows)
+			row.animateTilesIn();
 	}
 	
 	@Override
@@ -107,8 +111,6 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		super.touchManager().removeListener(tile);
 		// Mark the Level as failed because a Tile expired.
 		levelIsFailed = true;
-		
-		
 	}
 	
 	/* Update all the RowControllers with the Level's score. */

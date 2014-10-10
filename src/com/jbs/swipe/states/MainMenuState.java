@@ -7,6 +7,8 @@ import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.gui.Animator;
+import com.jbs.swipe.gui.Animator.Direction;
 import com.jbs.swipe.gui.buttons.StartButton;
 
 public class MainMenuState implements ApplicationState {
@@ -109,6 +111,11 @@ public class MainMenuState implements ApplicationState {
 			public void onTrigger() {
 				game.startLevel();
 				game.resetLevel();
+			}
+			@Override
+			public void onPress() {
+				new Animator(game)
+					.slideGraphicOffscreen(500, Direction.LEFT, title);
 			}
 		};
 		// Translate the StartButton down by half the button's height to align it's top edge with the title's center.

@@ -1,5 +1,8 @@
 package com.jbs.swipe.gui.buttons;
 
+import aurelienribon.tweenengine.BaseTween;
+import aurelienribon.tweenengine.TweenCallback;
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
@@ -7,6 +10,7 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.gui.Animator;
 
 public class StartButton implements Renderable {
 	
@@ -20,12 +24,15 @@ public class StartButton implements Renderable {
 		backlightDamping = .1f,
 		textDamping = .05f;
 	
+	private final Game game;
+	
 	private Button startButton;
 	private Graphic backlight, text;
 	private long startTime;
 	private boolean triggered = false;
 	
 	public StartButton(Game game, Vector2 center, float scale) {
+		this.game = game;
 		startButton = new Button(center, game.getTexture(PLAY_BUTTON_SOURCE)) {
 			@Override
 			public void onRelease() {
@@ -46,6 +53,7 @@ public class StartButton implements Renderable {
 	}
 	
 	public void onTrigger() { }
+	public void onPress() { }
 	
 	/*
 	 * Checks if the button has been pressed and can subsequently call trigger().
@@ -73,17 +81,29 @@ public class StartButton implements Renderable {
 		text.translate(x, y);
 	}
 	
-	/* @return true if the StartButton has been triggered. */
-	public boolean triggered() {
-		return triggered;
-	}
-	
 	/* Mark the StartButton as triggered and call the StartButton's onTrigger() event. */
 	public final void trigger() {
 		// Mark the StartButton as triggered so it is not triggered twice internally.
 		triggered = true;
-		// Call the onTrigger() event which is implemented elsewhere.
-		onTrigger();
+		
+		final int
+			baseAnimationDuration = 500,
+			animationDurationVariation = 500;
+		new Animator(game)
+			.slideGraphicsOffscreen(
+					baseAnimationDuration, // The base animation duration.
+					animationDurationVariation, // The potential variance in animation duration between the animation targets.
+					Animator.Direction.RIGHT, // The direction to animate in.
+					startButton, text, backlight) // The Graphics to animate.
+			.getTween(0).setCallback(new TweenCallback() {
+				@Override
+				public void onEvent(int type, BaseTween<?> source) {
+					if (type == TweenCallback.COMPLETE)
+						onTrigger();
+				}
+			});
+		
+		onPress();
 	}
 	
 	/* @return the width of the StartButton. */
@@ -106,5 +126,10 @@ public class StartButton implements Renderable {
 	protected long deltaTime() {
 		// Return the difference in time since the start time converted to milliseconds.
 		return System.currentTimeMillis() - startTime;
+	}
+	
+	/* @return true if the StartButton has been triggered. */
+	private boolean triggered() {
+		return triggered;
 	}
 }

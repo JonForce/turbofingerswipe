@@ -147,6 +147,18 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		// Animate the Tile to its slot's position.
 		this.tiles[INDEX_TO_ADD_TILE_AT].setTranslationTarget(getSlot(INDEX_TO_ADD_TILE_AT), animationSpeed);
 	}
+	
+	public final SwipeTile[] tiles() {
+		return this.tiles;
+	}
+	
+	public final void animateTilesIn() {
+		for (int i = 0; i != this.numberOfTiles; i ++) {
+			tiles[i].setTranslationTarget(getSlot(i), animationSpeed);
+			tiles[i].setPosition(getSlot(numberOfTiles));
+		}
+	}
+	
 	/* Collapse the Row over it's n'th Tile. */
 	public final void collapseTile(int tileToDissolve) {
 		// Collapse the Row over the specified Tile in the Row's default direction.
