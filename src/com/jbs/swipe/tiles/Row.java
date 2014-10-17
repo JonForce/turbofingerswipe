@@ -6,6 +6,7 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.Pattern;
 import com.jbs.swipe.TouchManager;
 
 public class Row implements SwipeListener, Renderable, Updatable {
@@ -40,6 +41,12 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		direction = DIRECTION_LEFT, // The direction to move the Row when a Tile is removed.
 		timeToSwipe = 10000; // The number of milliseconds the player will have to swipe the Tile.
 	
+	private boolean
+		visible = true; // True when the Row may be rendered.
+	
+	private Pattern<Direction>
+		pattern; // The pattern of the Tiles.
+	
 	public Row(Game game, Vector2 center, int numberOfTiles) {
 		this.game = game;
 		this.center = center;
@@ -58,7 +65,8 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		renderTilesTo(batch);
+		if (this.visible())
+			renderTilesTo(batch);
 	}
 	
 	@Override
@@ -85,6 +93,13 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		for (SwipeTile tile : tiles)
 			if (tile != null)
 				tile.reset();
+	}
+	
+	/**
+	 * @param newPattern The Pattern the Row should use when spawning Tiles.
+	 */
+	public void setPattern(Pattern<Direction> newPattern) {
+		this.pattern = newPattern;
 	}
 	
 	/* Set the direction for the Row to move in when expanding and collapsing. */
@@ -152,10 +167,36 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		return this.tiles;
 	}
 	
+	/** @return true when the Row may be rendered. */
+	public final boolean visible() {
+		return this.visible;
+	}
+	
+	/**
+	 * Set whether or not to render the Row.
+	 * @param flag True if the Row may be rendered.
+	 */
+	public final void setVisible(boolean flag) {
+		this.visible = flag;
+	}
+	
 	public final void animateTilesIn() {
 		for (int i = 0; i != this.numberOfTiles; i ++) {
 			tiles[i].setTranslationTarget(getSlot(i), animationSpeed);
 			tiles[i].setPosition(getSlot(numberOfTiles));
+		}
+	}
+	
+	public final void animateTilesInFrom(Direction direction) {
+		switch (direction) {
+			case UP:
+				// Animate from the top of the screen.
+				for (int i = 0; i != numberOfTiles; i ++)
+					tiles[i].setPosition(tiles[i].x(), tiles[i].y() + game.screenHeight());
+			case DOWN:
+				for (int i = 0; i != numberOfTiles; i ++)
+					tiles[i].setPosition(tiles[i].x(), tiles[i].y() - game.screenHeight());
+			break;
 		}
 	}
 	
@@ -267,7 +308,11 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		
 		// Create the Tile with the game and specify the amount of time the player
 		// has to swipe the Tile.
-		SwipeTile tile = new SwipeTile(game, timeToSwipe);
+		SwipeTile tile;
+		if (pattern == null)
+			tile = new SwipeTile(game, timeToSwipe);
+		else
+			tile = new SwipeTile(game, timeToSwipe, pattern.next());
 		// Translate the Tile to the specified slot position.
 		tile.setPosition(getSlot(slot));
 		// Set the Tile to use the specified scale.

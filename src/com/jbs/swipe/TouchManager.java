@@ -1,20 +1,21 @@
 package com.jbs.swipe;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 
 public final class TouchManager {
 	
-	private ArrayList<TouchListener> touchListeners;
+	private ArrayList<TouchListener> touchListeners, touchListenersToRemove, touchListenersToAdd;
 	private boolean[] previousTouchState;
 	private final int MAX_TOUCHES;
 	
 	public TouchManager(int maxTouches) {
 		this.MAX_TOUCHES = maxTouches;
 		this.touchListeners = new ArrayList<TouchListener>();
+		this.touchListenersToRemove = new ArrayList<TouchListener>();
+		this.touchListenersToAdd = new ArrayList<TouchListener>();
 		this.previousTouchState = new boolean[maxTouches];
 	}
 	
@@ -29,14 +30,14 @@ public final class TouchManager {
 	 * @param listener The Listener to notify of touch events.
 	 */
 	public void addListener(TouchListener listener) {
-		touchListeners.add(listener);
+		touchListenersToAdd.add(listener);
 	}
 	
 	/**
 	 * @param listener The Listener to cease notifying of touch events.
 	 */
 	public void removeListener(TouchListener listener) {
-		touchListeners.remove(listener);
+		touchListenersToRemove.add(listener);
 	}
 	
 	/**
@@ -44,6 +45,8 @@ public final class TouchManager {
 	 * @param input 
 	 */
 	public void update(InputProxy input) {
+		flushListenerQueue();
+		
 		final boolean[] currentTouchState = getTouchStateOf(input);
 		for (int i = 0; i != MAX_TOUCHES; i ++)
 			// If input[i] is currently touched and was not previously touched,
@@ -55,18 +58,6 @@ public final class TouchManager {
 		previousTouchState = currentTouchState;
 	}
 	
-	protected void notifyListenersOfTouch(Vector2 touchPosition, int touchID, InputProxy proxy) {
-		Iterator<TouchListener> iterator = touchListeners.iterator();
-		while (iterator.hasNext())
-			iterator.next().onTouch(touchPosition, touchID, proxy);
-	}
-	
-	protected void notifyListenersOfRelease(int touchID) {
-		Iterator<TouchListener> iterator = touchListeners.iterator();
-		while (iterator.hasNext())
-			iterator.next().onRelease(touchID);
-	}
-	
 	/**
 	 * @param input The InputProxy to fetch the state of.
 	 * @return An array containing the touched status of all the 
@@ -76,5 +67,25 @@ public final class TouchManager {
 		for (int i = 0; i != MAX_TOUCHES; i ++)
 			touchState[i] = input.isTouched(i);
 		return touchState;
+	}
+	
+	private void notifyListenersOfTouch(Vector2 touchPosition, int touchID, InputProxy proxy) {
+		for (TouchListener listener : touchListeners)
+			listener.onTouch(touchPosition, touchID, proxy);
+	}
+	
+	private void notifyListenersOfRelease(int touchID) {
+		for (TouchListener listener : touchListeners)
+			listener.onRelease(touchID);
+	}
+	
+	private void flushListenerQueue() {
+		for (TouchListener listener : this.touchListenersToAdd)
+			touchListeners.add(listener);
+		touchListenersToAdd.clear();
+		
+		for (TouchListener listener : this.touchListenersToRemove)
+			touchListeners.remove(listener);
+		touchListenersToRemove.clear();
 	}
 }

@@ -1,8 +1,9 @@
 package com.jbs.swipe.tiles;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import aurelienribon.tweenengine.BaseTween;
+import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
+import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
 import com.jbs.swipe.TouchListener;
@@ -51,6 +53,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	private Texture arrowGreen, arrowGray;
 	
 	private Vector2
+		originalTileSize, // The width and height of the Tile graphic initially.
 		center, // The center of the SwipeTile.
 		target; // The position to translate the SwipeTile to.
 	
@@ -128,19 +131,6 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 			public int y() {
 				return (int) swipeTile.y();
 			}
-			
-			/*
-			// Assert that the width and height of the Arrow is lazily evaluated, otherwise when
-			// the arrow changes texture, the width and height will remain the width and height of the old texture.
-			@Override
-			public int width() {
-				return texture().getWidth();
-			}
-			@Override
-			public int height() {
-				return texture().getHeight();
-			}
-			*/
 		};
 		
 		this.timeToSwipe = timeToSwipe;
@@ -150,6 +140,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		
 		startTime = System.nanoTime();
 		swipeListener = this;
+		
+		originalTileSize = new Vector2(tile.height(), tile.height());
 	}
 	
 	public SwipeTile(Game game, float swipeTime, Direction direction) {
@@ -175,9 +167,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	}
 	
 	public void updateWith(InputProxy input) {
-		if (this.target != null)
-			// Update the SwipeTile's translation animation.
-			updateTranslationAnimation();
+		// Update the SwipeTile's translation animation.
+		updateTranslationAnimation();
 		
 		if (!this.isCorrectlySwiped())
 			// Set the State of the SwipeTile to be the current stage in it's lifecycle.
@@ -224,14 +215,16 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 						game.audio().playSound(Gdx.files.internal(CORRECT_SWIPE_SOUND_SOURCE), volume);
 						// Set the SwipeTile to it's correctly-swiped State.
 						tile.setState(correctlySwipedState);
-						// Create a new TimerTask
-						TimerTask callback = new TimerTask() {
-							@Override
-							public void run() {
-								swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
-							}
-						};
-						new Timer().schedule(callback, (long)arrowGreenTime());
+						
+						new Animator(game)
+							.shrinkTile(arrowGreenTime(), tile)
+							.getTween(0).setCallback(new TweenCallback() {
+								@Override
+								public void onEvent(int type, BaseTween<?> source) {
+									if (type == TweenCallback.COMPLETE)
+										swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
+								}
+							});
 					} else {
 						// We have determined the swipe to have been incorrect.
 						
@@ -269,7 +262,12 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.translationDamping = damping;
 		this.target.set(targetX, targetY);
 	}
-	public final void setTranslationTarget(Vector2 target, float damping) { setTranslationTarget(target.x, target.y, damping); }
+	public final void setTranslationTarget(Vector2 target, float damping) {
+		if (target == null)
+			this.target = null;
+		else
+			setTranslationTarget(target.x, target.y, damping);
+	}
 	
 	/* Set the volume to play the SwipeTile's Sounds at. */
 	public void setVolume(float newVolume) {
@@ -373,6 +371,33 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return boundingBox().contains(point.x, point.y);
 	}
 	
+	/**
+	 * @return The Direction that the SwipeTile faces, throws RuntimeException if the Tile's required swipe
+	 * direction isnt a multiple of 90 degrees.
+	 */
+	public final Direction direction() {
+		if (this.requiredSwipeDirection % 360 == 0)
+			return Direction.RIGHT;
+		else if (this.requiredSwipeDirection % 360 == 90)
+			return Direction.UP;
+		else if (this.requiredSwipeDirection % 360 == 180)
+			return Direction.LEFT;
+		else if (this.requiredSwipeDirection % 360 == 270)
+			return Direction.DOWN;
+		else
+			throw new RuntimeException("Tile's direction is not a multiple of 90 degrees : " + (this.requiredSwipeDirection % 360) );
+	}
+	
+	/**
+	 * Scale the SwipeTile to the specified scalar.
+	 * @param scalarX The x-Component of the new scale.
+	 * @param scalarY The y-Component of the new scale.
+	 */
+	public final void setScale(float scalarX, float scalarY) {
+		final Vector2 oldScale = this.scale();
+		this.scale(scalarX/oldScale.x, scalarY/oldScale.y);
+	}
+	
 	/* Translate the tile so it's center is at the specified coordinates. */
 	public final void setPosition(float x, float y) {
 		translate(x - this.x(), y - this.y());
@@ -383,6 +408,23 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		setPosition(newPosition.x, newPosition.y);
 	}
 	
+	/* Update the SwipeTile's translation animation. */
+	public final void updateTranslationAnimation() {
+		if (target == null)
+			return;
+		
+		final float
+			// Declare the distance to the target position.
+			deltaX = target.x - this.x(),
+			deltaY = target.y - this.y(),
+			// Declare the new coordinates for the SwipeTile to use.
+			newX = this.x() + (deltaX * translationDamping),
+			newY = this.y() + (deltaY * translationDamping);
+		
+		// Set the SwipeTile to the new-coordinates.
+		setPosition(newX, newY);
+	}
+	
 	/* @return the x-Coordinate of the center of the SwipeTile. */
 	public final float x() {
 		return center.x;
@@ -391,6 +433,13 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	/* @return the y-Coordinate of the center of the SwipeTile. */
 	public final float y() {
 		return center.y;
+	}
+	
+	/**
+	 * @return The scale of the Tile relative to it's initial size.
+	 */
+	public final Vector2 scale() {
+		return new Vector2(tile.width() / originalTileSize.x, tile.height() / originalTileSize.y);
 	}
 	
 	/* Refresh the SwipeTile's arrow's Texture. */
@@ -469,19 +518,6 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	 */
 	protected final Vector2 positionOf(InputProxy input, int touchID) {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
-	}
-	
-	/* Update the SwipeTile's translation animation. */
-	private void updateTranslationAnimation() {
-		final float
-			// Declare the distance to the target position.
-			deltaX = target.x - this.x(),
-			deltaY = target.y - this.y(),
-			// Declare the new coordinates for the SwipeTile to use.
-			newX = this.x() + (deltaX * translationDamping),
-			newY = this.y() + (deltaY * translationDamping);
-		// Set the SwipeTile to the new-coordinates.
-		setPosition(newX, newY);
 	}
 	
 	/*

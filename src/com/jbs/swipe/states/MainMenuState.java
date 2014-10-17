@@ -6,12 +6,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
+import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
-import com.jbs.swipe.gui.Animator;
-import com.jbs.swipe.gui.Animator.Direction;
 import com.jbs.swipe.gui.buttons.StartButton;
+import com.jbs.swipe.tiles.Direction;
 
-public class MainMenuState implements ApplicationState {
+public abstract class MainMenuState implements ApplicationState {
 	
 	public final float
 		START_BUTTON_SCALE = 1f;
@@ -70,6 +70,8 @@ public class MainMenuState implements ApplicationState {
 		return initialized;
 	}
 	
+	protected abstract void exitMainMenu();
+	
 	/* Initialize the MainMenu's components. */
 	protected void initialize() {
 		game.playBackgroundMusic(true); // True because the background Music should play looped.
@@ -109,8 +111,7 @@ public class MainMenuState implements ApplicationState {
 		startButton = new StartButton(game, new Vector2(title.x(), title.y()), START_BUTTON_SCALE) {
 			@Override
 			public void onTrigger() {
-				game.startLevel();
-				game.resetLevel();
+				exitMainMenu();
 			}
 			@Override
 			public void onPress() {

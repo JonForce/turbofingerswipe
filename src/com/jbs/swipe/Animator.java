@@ -1,4 +1,4 @@
-package com.jbs.swipe.gui;
+package com.jbs.swipe;
 
 import java.util.ArrayList;
 
@@ -7,11 +7,12 @@ import aurelienribon.tweenengine.equations.Quad;
 
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.rendering.Graphic;
-import com.jbs.swipe.Game;
+import com.jbs.swipe.gui.GraphicAccessor;
+import com.jbs.swipe.tiles.Direction;
+import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.TileAccessor;
 
 public class Animator {
-	
-	public static enum Direction { UP, DOWN, LEFT, RIGHT }
 	
 	private final Game game;
 	private final ArrayList<Tween> tweens;
@@ -66,6 +67,20 @@ public class Animator {
 	 */
 	public Animator slideGraphicsOffscreen(float time, Direction direction, Graphic... graphics) {
 		slideGraphicsOffscreen(time, 0, direction, graphics);
+		return this;
+	}
+	
+	/**
+	 * @param time The duration of the animation.
+	 * @param tile The Tile to shrink.
+	 */
+	public Animator shrinkTile(float time, SwipeTile tile) {
+		tweens.add(
+				Tween.to(tile, TileAccessor.SCALE_TWEEN, time)
+					.ease(Quad.IN)
+					.target(0, 0)
+					.start(game.tweenManager())
+				);
 		return this;
 	}
 	

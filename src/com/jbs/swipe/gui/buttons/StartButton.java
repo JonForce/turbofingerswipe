@@ -9,8 +9,9 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.rendering.ui.Button;
+import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
-import com.jbs.swipe.gui.Animator;
+import com.jbs.swipe.tiles.Direction;
 
 public class StartButton implements Renderable {
 	
@@ -93,7 +94,7 @@ public class StartButton implements Renderable {
 			.slideGraphicsOffscreen(
 					baseAnimationDuration, // The base animation duration.
 					animationDurationVariation, // The potential variance in animation duration between the animation targets.
-					Animator.Direction.RIGHT, // The direction to animate in.
+					Direction.RIGHT, // The direction to animate in.
 					startButton, text, backlight) // The Graphics to animate.
 			.getTween(0).setCallback(new TweenCallback() {
 				@Override

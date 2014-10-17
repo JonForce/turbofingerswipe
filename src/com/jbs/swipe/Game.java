@@ -20,11 +20,15 @@ import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.gui.LoadingScreen;
 import com.jbs.swipe.levels.Level;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
+import com.jbs.swipe.states.ArcadeTutorialState;
 import com.jbs.swipe.states.GameOverState;
 import com.jbs.swipe.states.LevelState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
 import com.jbs.swipe.states.PausedState;
+import com.jbs.swipe.states.TutorialState;
+import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.TileAccessor;
 
 public class Game extends Application {
 	
@@ -41,6 +45,7 @@ public class Game extends Application {
 	protected Random random;
 	
 	private TweenManager tweenManager;
+	private TutorialState tutorialState;
 	private LoadingState loadingState;
 	private PausedState pausedState;
 	private Renderable loadingScreen;
@@ -50,7 +55,9 @@ public class Game extends Application {
 	private GameOverState gameOverState;
 	
 	private long lastRenderTime;
-	private boolean created = false; // True when the Game's resources have been initialized.
+	private boolean
+		hasShownTutorial = false,
+		created = false; // True when the Game's resources have been initialized.
 	
 	public Game(int virtualWidth, int virtualHeight) {
 		super(virtualWidth, virtualHeight);
@@ -271,6 +278,7 @@ public class Game extends Application {
 		
 		tweenManager = new TweenManager();
 		Tween.registerAccessor(Graphic.class, new GraphicAccessor());
+		Tween.registerAccessor(SwipeTile.class, new TileAccessor());
 	}
 	
 	/* Initialize the Game's ApplicationStates. */
@@ -280,17 +288,28 @@ public class Game extends Application {
 		// Set our LoadingState to exit to our MainMenuState when loading is complete.
 		loadingState().setExitState(mainMenuState());
 		
-		// Set our Level to use the same background as the MainMenu.
-		level().setBackground(new Renderable() {
+		final Renderable background = new Renderable() {
 			@Override
 			public void renderTo(SpriteBatch batch) {
 				batch.draw(mainMenuState().backgroundTexture(), 0, 0, screen().virtualWidth(), screen().virtualHeight());
 			}
-		});
+		};
+		
+		tutorialState().setBackground(background);
+		tutorialState().setExitState(levelState());
+		
+		level().setBackground(background);
 		// Set our LevelState's game-over state.
 		levelState().setGameOverState(this.gameOverState());
 		// Set our LevelState's Level.
 		levelState().setLevel(level());
+	}
+	
+	protected TutorialState tutorialState() {
+		if (this.tutorialState == null)
+			tutorialState = new ArcadeTutorialState(this);
+		
+		return tutorialState;
 	}
 	
 	/* Create the Game's GameOverState if it has not yet been created and return it. */
@@ -327,7 +346,18 @@ public class Game extends Application {
 		// If our Game's MainMenuState has not yet been created,
 		if (this.mainMenuState == null)
 			// Create the state with our Game's AssetManager and Screen.
-			mainMenuState = new MainMenuState(this, screen().virtualWidth(), screen().virtualHeight());
+			mainMenuState = new MainMenuState(this, screen().virtualWidth(), screen().virtualHeight()) {
+				@Override
+				protected void exitMainMenu() {
+					if (!hasShownTutorial) {
+						setState(tutorialState());
+						hasShownTutorial = true;
+					} else {
+						game.startLevel();
+						game.resetLevel();
+					}
+				}
+		};
 		
 		return mainMenuState;
 	}

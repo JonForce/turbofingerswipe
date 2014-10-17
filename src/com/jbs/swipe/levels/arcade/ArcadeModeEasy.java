@@ -1,5 +1,6 @@
 package com.jbs.swipe.levels.arcade;
 
+import com.jbs.framework.io.InputProxy;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.tiles.Row;
 import com.jbs.swipe.tiles.RowController;
@@ -11,10 +12,12 @@ public class ArcadeModeEasy extends ArcadeMode {
 		MINIMUM_TIME_TO_SWIPE = 10000,
 		TIME_TO_DECREMENT = 40,
 		
-		INITIAL_ROW_SIZE = 3,
+		INITIAL_ROW_SIZE = 4,
 		MAXIMUM_ROW_SIZE = 6,
 		
-		EXPANSION_INTERVAL = 10,
+		SCORE_TO_REVEAL_ROWS_AT = 5,
+		
+		EXPANSION_INTERVAL = 15,
 		EXPANSION_OFFSET =  5;
 	
 	public ArcadeModeEasy(Game game) {
@@ -44,5 +47,26 @@ public class ArcadeModeEasy extends ArcadeMode {
 			controller.setExpansionInerval(EXPANSION_INTERVAL);
 			controller.setExpansionOffset(EXPANSION_OFFSET);
 		}
+	}
+	
+	@Override
+	public void updateWith(InputProxy input) {
+		super.updateWith(input);
+		if (score() >= SCORE_TO_REVEAL_ROWS_AT) {
+			// Reveal Rows if they arnt already revealed.
+			
+			if (!bottomRow().visible())
+				revealBottomRow();
+			if (!topRow().visible())
+				revealTopRow();
+		} else if (score() < SCORE_TO_REVEAL_ROWS_AT) {
+			// Hide Rows if they are visible.
+			
+			if (bottomRow().visible())
+				hideBottomRow();
+			if (topRow().visible())
+				hideTopRow();
+		}
+		
 	}
 }

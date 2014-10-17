@@ -3,7 +3,9 @@ package com.jbs.swipe.levels.arcade;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.Pattern;
 import com.jbs.swipe.levels.Level;
+import com.jbs.swipe.tiles.Direction;
 import com.jbs.swipe.tiles.Row;
 import com.jbs.swipe.tiles.RowController;
 import com.jbs.swipe.tiles.SwipeListener;
@@ -12,7 +14,8 @@ import com.jbs.swipe.tiles.SwipeTile;
 public abstract class ArcadeMode extends Level implements SwipeListener {
 	
 	public final int
-		NUMBER_OF_ROWS = 3;
+		NUMBER_OF_ROWS = 3,
+		DEFAULT_PATTERN_LENGTH = 2;
 	
 	/* The Rows to be rendered and updated */
 	protected Row[] rows;
@@ -31,6 +34,9 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		initializeRows();
 		initializeControllers();
 		initializeDifficulty();
+		
+		for (Row row : rows)
+			row.animateTilesIn();
 	}
 
 	@Override
@@ -40,7 +46,6 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 
 	@Override
 	public void reset() {
-		System.out.println("reset");
 		// Reset the score.
 		super.resetScore();
 		// Reset failure condition.
@@ -66,7 +71,7 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		super.touchManager().update(input);
 		// For all non-null Rows in the Level,
 		for (Row row : this.rows)
-			if (row != null)
+			if (row != null && row.visible())
 				row.updateWith(input);
 	}
 	
@@ -75,7 +80,7 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		// Render the background under all the rest of the Level.
 		super.renderBackgroundTo(batch);
 		for (Row row : this.rows)
-			if (row != null)
+			if (row != null && row.visible())
 				row.renderTo(batch);
 	}
 	
@@ -113,25 +118,57 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		levelIsFailed = true;
 	}
 	
+	/** Animate the top-Row in from the top of the screen. */
+	protected final void revealTopRow() {
+		topRow().animateTilesInFrom(Direction.UP);
+		topRow().setVisible(true);
+		topRow().resetTiles();
+	}
+	
+	/** Animate the bottom-Row in from the bottom of the screen. */
+	protected final void revealBottomRow() {
+		bottomRow().animateTilesInFrom(Direction.DOWN);
+		bottomRow().setVisible(true);
+		bottomRow().resetTiles();
+	}
+	
+	/** Disable the top Row. */
+	protected final void hideTopRow() {
+		topRow().setVisible(false);
+	}
+	
+	/** Disable the bottom Row. */
+	protected final void hideBottomRow() {
+		bottomRow().setVisible(false);
+	}
+	
 	/* Update all the RowControllers with the Level's score. */
 	protected final void updateRowControllers() {
 		topRowController().update(this.score());
-		centerRowController().update(this.score());
 		bottomRowController().update(this.score());
+		centerRowController().update(this.score());
+	}
+	
+	protected final void setPatternLengths(int newLength) {
+		for (Row row : rows) {
+			final Pattern<Direction> pattern = new Pattern<Direction>(newLength, Direction.RIGHT, Direction.UP, Direction.LEFT, Direction.DOWN);
+			pattern.scramble(super.game().random());
+			row.setPattern(pattern);
+		}
 	}
 	
 	/* @return the Level's top Row. */
-	protected Row topRow() {
+	protected final Row topRow() {
 		return rows[2];
 	}
 	
 	/* @return the Level's center Row. */
-	protected Row centerRow() {
+	protected final Row centerRow() {
 		return rows[1];
 	}
 	
 	/* @return the Level's bottom Row. */
-	protected Row bottomRow() {
+	protected final Row bottomRow() {
 		return rows[0];
 	}
 	
@@ -172,9 +209,17 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 		// Initialize the top Row above the center Row.
 		rows[2] = new Row(game(), game().screenCenter().add(0, rows[1].height()), initialTilesPerRow());
 		
+		
+		// Only the center Row is visible by default.
+		centerRow().setVisible(true);
+		// Other Rows must be revealed.
+		bottomRow().setVisible(false);
+		topRow().setVisible(false);
+		
 		for (Row row : this.rows) {
 			row.setSwipeListener(this);
 			row.setTouchManager(touchManager());
+			row.setPattern(new Pattern<Direction>(DEFAULT_PATTERN_LENGTH, Direction.RIGHT, Direction.UP, Direction.LEFT, Direction.DOWN));
 		}
 	}
 	
