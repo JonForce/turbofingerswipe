@@ -11,6 +11,7 @@ import com.jbs.swipe.ScreenOverlay;
 import com.jbs.swipe.gui.buttons.HomeButton;
 import com.jbs.swipe.gui.buttons.RestartButton;
 import com.jbs.swipe.gui.buttons.ResumeButton;
+import com.jbs.swipe.levels.LevelState;
 
 public class PausedState implements ApplicationState {
 	

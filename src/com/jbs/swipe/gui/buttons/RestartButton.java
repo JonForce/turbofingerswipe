@@ -18,7 +18,7 @@ public class RestartButton extends Button {
 	
 	@Override
 	public void onRelease() {
-		game.resetLevel();
-		game.resume();
+		game.levelState().restart();
+		game.setState(game.levelState());
 	}
 }

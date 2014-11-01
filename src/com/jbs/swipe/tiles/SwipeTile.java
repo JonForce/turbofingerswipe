@@ -63,7 +63,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		startTime, // The nano time that the SwipeTile was constructed
 		timeToSwipe, // The time until the SwipeTile expires
 		requiredSwipeDirection, // The required swipe direction in degrees
-		swipeAngleTolerance = 45, // The tolerated inaccuracy for a swipe
+		swipeAngleTolerance = 70, // The tolerated inaccuracy for a swipe
 		requiredSwipeMagnitude; // The required swipe magnitude
 	
 	// State data, used to determine when to trigger events.
@@ -88,6 +88,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.tile = new Graphic(new Vector2(x(), y()), game.getTexture(BLUE_TILE_SOURCE)) {
 			// Store the last Texture returned by the texture() method.
 			Texture lastTextureUsed;
+			// Texture to use if all else fails.
+			Texture defaultTexture = game.getTexture(BLUE_TILE_SOURCE);
 			
 			// The center of the tile Graphic is the center of the SwipeTile.
 			@Override
@@ -111,7 +113,10 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 					textureToBeUsed = game.getTexture(RED_TILE_SOURCE);
 				// If the correct Texture to use cannot be determined, use the last Texture used.
 				else
-					textureToBeUsed = lastTextureUsed;
+					if (lastTextureUsed == null)
+						textureToBeUsed = defaultTexture;
+					else
+						textureToBeUsed = lastTextureUsed;
 				
 				this.lastTextureUsed = textureToBeUsed;
 				return textureToBeUsed;
@@ -183,8 +188,9 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		
 		// If the SwipeTile is expired and was not expired the last time it's state was saved,
 		if (expired() && !wasExpired)
-			// Call the onExpire() event.
-			swipeListener.onExpire(this);
+			if (swipeListener != null)
+				// Call the onExpire() event.
+				swipeListener.onExpire(this);
 		
 		// Save the state of our SwipeTile.
 		wasExpired = expired();
@@ -222,7 +228,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 								@Override
 								public void onEvent(int type, BaseTween<?> source) {
 									if (type == TweenCallback.COMPLETE)
-										swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
+										if (swipeListener != null)
+											swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
 								}
 							});
 					} else {
@@ -230,8 +237,10 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 						
 						// Play the incorrect-swipe sound.
 						game.audio().playSound(Gdx.files.internal(INCORRECT_SWIPE_SOUND_SOURCE), volume);
-						// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
-						swipeListener.onIncorrectSwipe(tile);
+						
+						if (swipeListener != null)
+							// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
+							swipeListener.onIncorrectSwipe(tile);
 					}
 				}
 			};

@@ -4,14 +4,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
-import com.jbs.swipe.levels.Level;
+import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.tiles.Direction;
 import com.jbs.swipe.tiles.Row;
 import com.jbs.swipe.tiles.RowController;
 import com.jbs.swipe.tiles.SwipeListener;
 import com.jbs.swipe.tiles.SwipeTile;
 
-public abstract class ArcadeMode extends Level implements SwipeListener {
+public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	
 	public final int
 		NUMBER_OF_ROWS = 3,
@@ -22,72 +23,8 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 	/* The Controllers to dictate the automatic expansion and contraction of the Rows. */
 	protected RowController[] rowControllers;
 	
-	private boolean levelIsFailed;
-	
 	public ArcadeMode(Game game) {
 		super(game);
-	}
-
-	@Override
-	public void create() {
-		super.initialize();
-		initializeRows();
-		initializeControllers();
-		initializeDifficulty();
-		
-		for (Row row : rows)
-			row.animateTilesIn();
-	}
-
-	@Override
-	public void start() {
-		
-	}
-
-	@Override
-	public void reset() {
-		// Reset the score.
-		super.resetScore();
-		// Reset failure condition.
-		levelIsFailed = false;
-		// Reset all the Level's Tiles.
-		resetTiles();
-		// Update the RowControllers.
-		updateRowControllers();
-		
-		// Clear the TouchManager.
-		super.touchManager().clearListeners();
-		// Add all remaining Tiles to the TouchManager's notification list.
-		for (Row row : rows)
-			if (row != null)
-				row.setTouchManager(super.touchManager());
-		
-		for (Row row : rows)
-			row.animateTilesIn();
-	}
-	
-	@Override
-	public void updateWith(InputProxy input) {
-		super.touchManager().update(input);
-		// For all non-null Rows in the Level,
-		for (Row row : this.rows)
-			if (row != null && row.visible())
-				row.updateWith(input);
-	}
-	
-	@Override
-	public void renderTo(SpriteBatch batch) {
-		// Render the background under all the rest of the Level.
-		super.renderBackgroundTo(batch);
-		for (Row row : this.rows)
-			if (row != null && row.visible())
-				row.renderTo(batch);
-	}
-	
-	@Override
-	/* @return true when the player has lost and the Level is in its fail state. */
-	public boolean failureConditionMet() {
-		return levelIsFailed;
 	}
 	
 	@Override
@@ -102,32 +39,81 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 	
 	@Override
 	public void onIncorrectSwipe(SwipeTile tile) {
-		System.out.println("Level's active tile was incorrectly swipped!");
+		System.out.println("Level's tile was incorrectly swipped!");
 		// Remove the incorrectly swiped Tile from the Touch notification list.
 		super.touchManager().removeListener(tile);
-		// Mark the Level as failed because a Tile was incorrectly swiped.
-		levelIsFailed = true;
+		
+		// Fail the Level.
+		super.fail();
 	}
 	
 	@Override
 	public void onExpire(SwipeTile tile) {
-		System.out.println("Level's active tile expired!");
+		System.out.println("Level's tile expired!");
 		// Remove the expired Tile from the Touch notification list.
 		super.touchManager().removeListener(tile);
-		// Mark the Level as failed because a Tile expired.
-		levelIsFailed = true;
+		
+		// Fail the Level.
+		super.fail();
+	}
+	
+	@Override
+	protected void renderLevelTo(SpriteBatch batch) {
+		for (Row row : this.rows)
+			if (row != null && row.visible())
+				row.renderTo(batch);
+	}
+	
+	@Override
+	protected void updateLevelWith(InputProxy input) {
+		// For all non-null Rows in the Level,
+		for (Row row : this.rows)
+			if (row != null && row.visible())
+				row.updateWith(input);
+	}
+	
+	@Override
+	protected void create() {
+		initializeRows();
+		initializeControllers();
+		initializeDifficulty();
+	}
+	
+	@Override
+	protected void start() {
+		
+	}
+	
+	@Override
+	protected void reset() {
+		// Reset all the Level's Tiles.
+		resetTiles();
+		// Update the RowControllers.
+		updateRowControllers();
+		
+		// Clear the TouchManager.
+		super.touchManager().clearListeners();
+		// Add all remaining Tiles to the TouchManager's notification list.
+		for (Row row : rows)
+			if (row != null)
+				row.setTouchManager(super.touchManager());
+	}
+	
+	@Override
+	protected TutorialState createTutorial() {
+		return new ArcadeTutorialState(game());
 	}
 	
 	/** Animate the top-Row in from the top of the screen. */
 	protected final void revealTopRow() {
-		topRow().animateTilesInFrom(Direction.UP);
+		topRow().animateTilesIn();
 		topRow().setVisible(true);
 		topRow().resetTiles();
 	}
 	
 	/** Animate the bottom-Row in from the bottom of the screen. */
 	protected final void revealBottomRow() {
-		bottomRow().animateTilesInFrom(Direction.DOWN);
+		bottomRow().animateTilesIn();
 		bottomRow().setVisible(true);
 		bottomRow().resetTiles();
 	}
@@ -224,7 +210,7 @@ public abstract class ArcadeMode extends Level implements SwipeListener {
 	}
 	
 	private void initializeControllers() {
-		this.rowControllers = new RowController[3];
+		rowControllers = new RowController[3];
 		
 		rowControllers[0] = new RowController(bottomRow());
 		rowControllers[1] = new RowController(centerRow());

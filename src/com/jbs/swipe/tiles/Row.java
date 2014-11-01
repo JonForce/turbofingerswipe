@@ -187,19 +187,6 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		}
 	}
 	
-	public final void animateTilesInFrom(Direction direction) {
-		switch (direction) {
-			case UP:
-				// Animate from the top of the screen.
-				for (int i = 0; i != numberOfTiles; i ++)
-					tiles[i].setPosition(tiles[i].x(), tiles[i].y() + game.screenHeight());
-			case DOWN:
-				for (int i = 0; i != numberOfTiles; i ++)
-					tiles[i].setPosition(tiles[i].x(), tiles[i].y() - game.screenHeight());
-			break;
-		}
-	}
-	
 	/* Collapse the Row over it's n'th Tile. */
 	public final void collapseTile(int tileToDissolve) {
 		// Collapse the Row over the specified Tile in the Row's default direction.

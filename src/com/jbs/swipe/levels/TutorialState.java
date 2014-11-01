@@ -1,10 +1,9 @@
-package com.jbs.swipe.states;
+package com.jbs.swipe.levels;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
-import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.NullState;
 
@@ -13,7 +12,6 @@ public abstract class TutorialState implements ApplicationState {
 	protected final Game game;
 	
 	private ApplicationState exitState;
-	private Renderable background;
 	private int tipIndex = 0; // The index of the current tip.
 	private boolean created = false; // True if the Tutorial has been initialized.
 	
@@ -27,7 +25,7 @@ public abstract class TutorialState implements ApplicationState {
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		background.renderTo(batch);
+		game.background().renderTo(batch);
 		tips()[tipIndex].renderTo(batch);
 	}
 	
@@ -57,10 +55,6 @@ public abstract class TutorialState implements ApplicationState {
 		this.exitState = newExitState;
 	}
 	
-	public final void setBackground(Renderable newBackground) {
-		this.background = newBackground;
-	}
-	
 	protected final void useNextTip() {
 		if (++tipIndex == tips().length)
 			game.setState(exitState);
@@ -70,8 +64,8 @@ public abstract class TutorialState implements ApplicationState {
 	
 	protected void create() { }
 	
-	abstract void useTip(int tip);
-	abstract Graphic[] tips();
-	abstract String tutorialName();
+	abstract public void useTip(int tip);
+	abstract public Graphic[] tips();
+	abstract public String tutorialName();
 	
 }

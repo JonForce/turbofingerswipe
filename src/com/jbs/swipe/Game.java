@@ -18,15 +18,15 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.gui.LoadingScreen;
-import com.jbs.swipe.levels.Level;
+import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
-import com.jbs.swipe.states.ArcadeTutorialState;
+import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
+import com.jbs.swipe.states.GameModeSelectionState;
 import com.jbs.swipe.states.GameOverState;
-import com.jbs.swipe.states.LevelState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
 import com.jbs.swipe.states.PausedState;
-import com.jbs.swipe.states.TutorialState;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
 
@@ -45,18 +45,16 @@ public class Game extends Application {
 	protected Random random;
 	
 	private TweenManager tweenManager;
-	private TutorialState tutorialState;
+	
+	private Renderable background;
+	
 	private LoadingState loadingState;
-	private PausedState pausedState;
-	private Renderable loadingScreen;
 	private MainMenuState mainMenuState;
+	private GameModeSelectionState gameModeSelectionState;
 	private LevelState levelState;
-	private Level level;
-	private GameOverState gameOverState;
 	
 	private long lastRenderTime;
 	private boolean
-		hasShownTutorial = false,
 		created = false; // True when the Game's resources have been initialized.
 	
 	public Game(int virtualWidth, int virtualHeight) {
@@ -65,7 +63,7 @@ public class Game extends Application {
 			System.out.println("Warning! Game IS_STRICT");
 	}
 	
-	/* Reset the Game to it's MainMenuState. Throws RuntimeException if the Game
+	/** Reset the Game to it's MainMenuState. Throws RuntimeException if the Game
 	 * is already in it's MainMenuState. */
 	public void returnToMainMenu() {
 		if (this.IS_STRICT && this.isAtMainMenu())
@@ -74,22 +72,17 @@ public class Game extends Application {
 		this.setState(mainMenuState());
 	}
 	
-	/* Play the Game's background music. */
+	/** Play the Game's background music. */
 	public void playBackgroundMusic(boolean looped) {
 		audio().playMusic(BACKGROUND_MUSIC_SOURCE, looped);
 	}
 	
-	/* Stop the Game's background music. */
+	/** Stop the Game's background music. */
 	public void stopBackgroundMusic() {
 		audio().stopMusic(BACKGROUND_MUSIC_SOURCE);
 	}
 	
-	/* @return the highest submitted score. */
-	public int highScore() {
-		return preferences.getInteger("high_score");
-	}
-	
-	/* Retrieve the Texture from the Game's AssetManager. Throws RuntimeException if
+	/** Retrieve the Texture from the Game's AssetManager. Throws RuntimeException if
 	 * the Game has not yet been created with it's create() method. */
 	public Texture getTexture(FileHandle textureSource) {
 		if (this.IS_STRICT)
@@ -110,47 +103,39 @@ public class Game extends Application {
 		return getTexture(Gdx.files.internal(fileLocation));
 	}
 	
-	/* @return the Game's AudioProxy. This is the interface for using the Game's loaded Audio. */
-	public AudioProxy audio() {
+	/** @return the Game's Preferences. */
+	public final Preferences preferences() {
+		return preferences;
+	}
+	
+	/** @return the Game's AudioProxy. This is the interface for using the Game's loaded Audio. */
+	public final AudioProxy audio() {
 		return this.audioProxy;
 	}
 	
-	/* @return the Game's psuedo-Random number generator. */
-	public Random random() {
+	/** @return the Game's psuedo-Random number generator. */
+	public final Random random() {
 		return this.random;
 	}
 	
-	/* Submit the potential high-score for review. If it is higher than the Game's current high-score
-	 * it will be set as the new high-score. */
-	public final void submitScore(int potentialHighScore) {
-		if (potentialHighScore > this.highScore())
-			setHighScore(potentialHighScore);
-	}
-	
-	/* Set the Game's state to it's paused state and stop the background music.
+	/** Set the Game's state to it's paused state and stop the background music.
 	 * Throws a RuntimeException if the Game is already in it's PausedState. */
 	@Override
 	public final void pause() {
-		if (this.IS_STRICT && this.applicationState() == pausedState())
-			throw new RuntimeException("Cannot pause() : the Game is already in it's PausedState.");
-		
 		if (this.applicationState() == levelState() && // If the Game is in it's LevelState,
 				this.isCreated()) // And the Game is Created,
-			// Set the Game's state to it's paused state.
-			setState(pausedState());
+			// Pause the Level.
+			levelState().pause();
 	}
 	
-	/* Start the Level and play the Game's background music.
+	/** Start the Level and play the Game's background music.
 	 * Throws a RuntimeException if the Game is not paused. */
 	@Override
 	public final void resume() {
-		if (this.IS_STRICT && !this.isPaused())
-			throw new RuntimeException("Cannot resume : Game not in it's PausedState.");
-		
 		// Resume the background music.
-		this.playBackgroundMusic(true); // True because the background Music should be looped.
-		// Start the Level.
-		this.startLevel();
+		playBackgroundMusic(true); // True because the background Music should be looped.
+		// Resume the Level.
+		setState(levelState());
 	}
 	
 	@Override
@@ -162,30 +147,10 @@ public class Game extends Application {
 		preferences.flush();
 	}
 	
-	/* Set the Game's ApplicationState to the LevelState and reset the Level's Tile.
-	 * Throws RuntimeException if the Game is already in it's LevelState. */
-	public final void startLevel() {
-		if (this.IS_STRICT && this.applicationState() == levelState())
-			throw new RuntimeException("Cannot startLevel : Game already in it's LevelState.");
-		
-		// If the LevelState has already been initialized,
-		if (levelState().initialized())
-			// Reset the LevelState.
-			levelState().reset();
-		
-		// Set the Game's state to the LevelState, effectively resuming the Level.
-		this.setState(levelState());
-	}
-	
-	/* Resets the Game's LevelState. Does not require the Game to be in its
-	 * LevelState to reset it. */
-	public final void resetLevel() {
-		levelState().reset();
-	}
-	
 	@Override
 	public void render() {
 		super.render();
+		
 		final long currentTime = System.currentTimeMillis();
 		this.tweenManager().update(currentTime - lastRenderTime);
 		this.lastRenderTime = currentTime;
@@ -207,58 +172,66 @@ public class Game extends Application {
 		lastRenderTime = System.currentTimeMillis();
 	}
 	
+	public final void setLevelState(LevelState newLevelState) {
+		this.levelState = newLevelState;
+	}
+	
+	/** @return the Object that handles all the Game's Tweens. */
 	public final TweenManager tweenManager() {
 		return this.tweenManager;
 	}
 	
-	/* @return true if the Game's .create() method has been called. */
+	/** @return true if the Game's .create() method has been called. */
 	public final boolean isCreated() {
 		return created;
 	}
 	
-	/* @return true if the Game is not updating the Level. */
-	public final boolean isPaused() {
-		return (this.applicationState() != levelState());
-	}
-	
-	/* @return true if the Game is in it's MainMenuState. */
+	/** @return true if the Game is in it's MainMenuState. */
 	public final boolean isAtMainMenu() {
 		return (this.applicationState() == mainMenuState());
 	}
 	
-	/* @return the Game's Screen's virtual width. */
+	/** @return the Game's Screen's virtual width. */
 	public final int screenWidth() {
 		return screen().virtualWidth();
 	}
 	
-	/* @return the Game's Screen's virtual height. */
+	/** @return the Game's Screen's virtual height. */
 	public final int screenHeight() {
 		return screen().virtualHeight();
 	}
 	
-	/* @return the center of the Game's virtual screen. */
+	/** @return the center of the Game's virtual screen. */
 	public final Vector2 screenCenter() {
 		return new Vector2(screenWidth()/2, screenHeight()/2);
 	}
 	
-	/* @return the size of the Game's virtual screen. */
+	/** @return the size of the Game's virtual screen. */
 	public final Vector2 screenSize() {
 		return new Vector2(screenWidth(), screenHeight());
 	}
 	
-	/* Set the new high-score to newHighScore. */
+	public final LevelState levelState() {
+		return levelState;
+	}
+	
+	public final Renderable background() {
+		return background;
+	}
+	
+	/** Set the new high-score to newHighScore. */
 	protected void setHighScore(int newHighScore) {
 		// Save the new high-score to our preferences.
 		preferences.putInteger("high_score", newHighScore);
 	}
 	
-	/* Initialize the Game's FileHandles. */
+	/** Initialize the Game's FileHandles. */
 	protected void initializeFileHandles() {
 		PATH_TO_ASSETS = Gdx.files.internal("assets");
 		BACKGROUND_MUSIC_SOURCE = Gdx.files.internal("assets/SFX/BackgroundMusic.mp3");
 	}
 	
-	/* Initialize the Game's AssetManager. */
+	/** Initialize the Game's AssetManager. */
 	protected void initializeAssets() {
 		// Create our psuedo-random number generator.
 		random = new Random();
@@ -281,67 +254,27 @@ public class Game extends Application {
 		Tween.registerAccessor(SwipeTile.class, new TileAccessor());
 	}
 	
-	/* Initialize the Game's ApplicationStates. */
+	/** Initialize the Game's ApplicationStates. */
 	protected void initializeStates() {
-		// Set our LoadingState's screen to our LoadingScreen.
-		loadingState().setLoadingScreen(loadingScreen());
 		// Set our LoadingState to exit to our MainMenuState when loading is complete.
 		loadingState().setExitState(mainMenuState());
 		
-		final Renderable background = new Renderable() {
+		background = new Renderable() {
 			@Override
 			public void renderTo(SpriteBatch batch) {
 				batch.draw(mainMenuState().backgroundTexture(), 0, 0, screen().virtualWidth(), screen().virtualHeight());
 			}
 		};
-		
-		tutorialState().setBackground(background);
-		tutorialState().setExitState(levelState());
-		
-		level().setBackground(background);
-		// Set our LevelState's game-over state.
-		levelState().setGameOverState(this.gameOverState());
-		// Set our LevelState's Level.
-		levelState().setLevel(level());
 	}
 	
-	protected TutorialState tutorialState() {
-		if (this.tutorialState == null)
-			tutorialState = new ArcadeTutorialState(this);
+	protected GameModeSelectionState gameModeSelectionState() {
+		if (this.gameModeSelectionState == null)
+			gameModeSelectionState = new GameModeSelectionState(this);
 		
-		return tutorialState;
+		return gameModeSelectionState;
 	}
 	
-	/* Create the Game's GameOverState if it has not yet been created and return it. */
-	protected GameOverState gameOverState() {
-		// If our Game's GameOverState has not yet been created,
-		if (this.gameOverState == null)
-			// Create our Game's GameOverState with our Game.
-			gameOverState = new GameOverState(this, levelState()) {
-			@Override
-			public int currentScore() {
-				return level().score();
-			}
-			@Override
-			public int highestScore() {
-				return highScore();
-			}
-		};
-		
-		return gameOverState;
-	}
-	
-	/* Create the Game's PausedState if it has not yet been created and return it. */
-	protected PausedState pausedState() {
-		// If our Game's PausedState has not yet been created,
-		if (this.pausedState == null)
-			// Create it with the Game and LevelState.
-			pausedState = new PausedState(this, levelState());
-		
-		return pausedState;
-	}
-	
-	/* Create the Game's MainMenuState if it has not yet been created and return it. */
+	/** Create the Game's MainMenuState if it has not yet been created and return it. */
 	protected MainMenuState mainMenuState() {
 		// If our Game's MainMenuState has not yet been created,
 		if (this.mainMenuState == null)
@@ -349,58 +282,20 @@ public class Game extends Application {
 			mainMenuState = new MainMenuState(this, screen().virtualWidth(), screen().virtualHeight()) {
 				@Override
 				protected void exitMainMenu() {
-					if (!hasShownTutorial) {
-						setState(tutorialState());
-						hasShownTutorial = true;
-					} else {
-						game.startLevel();
-						game.resetLevel();
-					}
+					setState(gameModeSelectionState());
 				}
 		};
 		
 		return mainMenuState;
 	}
 	
-	/* Create the Game's LoadingState if it has not yet been created and return it. */
+	/** Create the Game's LoadingState if it has not yet been created and return it. */
 	protected LoadingState loadingState() {
 		// If our Game's LoadingState has not yet been created,
 		if (this.loadingState == null)
 			// Create our game's loading state with our AssetManager and known path to our assets.
-			loadingState = new LoadingState(assetManager, PATH_TO_ASSETS);
+			loadingState = new LoadingState(this, assetManager, PATH_TO_ASSETS);
 		
 		return loadingState;
-	}
-	
-	/* Create the Game's LevelState if it has not yet been created and return it. */
-	protected LevelState levelState() {
-		// If our Game's LevelState has not yet been created,
-		if (this.levelState == null)
-			levelState = new LevelState(this);
-		
-		return levelState;
-	}
-	
-	protected Level level() {
-		if (this.level == null)
-			level = new ArcadeModeEasy(this);
-		
-		return level;
-	}
-	
-	/* Create the Game's loadingScreen if it has not yet been created and return it. */
-	protected Renderable loadingScreen() {
-		// If the Game's loading screen has not yet been created,
-		if (loadingScreen == null)
-			// Create our Game's LoadingScreen with the Game and screen.
-			loadingScreen = new LoadingScreen(screen().virtualWidth(), screen().virtualHeight()) {
-				// Set the LoadingScreen's percent completeness to be the percent completion of our LoadingState.
-				@Override
-				public float percentComplete() {
-					return loadingState.percentComplete();
-				}
-			};
-			
-		return loadingScreen;
 	}
 }

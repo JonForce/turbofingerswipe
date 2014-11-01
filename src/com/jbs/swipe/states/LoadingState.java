@@ -9,7 +9,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Renderable;
-import com.jbs.swipe.NullState;
+import com.jbs.swipe.Game;
+import com.jbs.swipe.gui.LoadingScreen;
 
 public class LoadingState implements ApplicationState {
 	
@@ -21,7 +22,7 @@ public class LoadingState implements ApplicationState {
 	/* The object to defer rendering to while loading */
 	private Renderable loadingScreen;
 	
-	public LoadingState(AssetManager assetManager, FileHandle resources, ApplicationState exitState) {
+	public LoadingState(Game game, final AssetManager assetManager, FileHandle resources) {
 		// Assert 'resources' is exists and is a directory.
 		if (!resources.exists())
 			throw new RuntimeException("Error in LoadingState constructor : Resource folder not found at \"" + resources.path() + "\"");
@@ -30,14 +31,15 @@ public class LoadingState implements ApplicationState {
 		
 		// Set our LoadingState's AssetManager and exit-state to the constructor data.
 		this.assetManager = assetManager;
-		this.exitState = exitState;
 		
 		// Load all the textures from our resource directory.
 		this.loadAssetsFrom(resources);
-	}
-	
-	public LoadingState(AssetManager assetManager, FileHandle resources) {
-		this(assetManager, resources, new NullState());
+		
+		this.loadingScreen = new LoadingScreen(game.screenWidth(), game.screenHeight()) {
+			public float percentComplete() {
+				return assetManager.getProgress();
+			}
+		};
 	}
 	
 	@Override
@@ -52,10 +54,7 @@ public class LoadingState implements ApplicationState {
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		// If our loading screen has been set.
-		if (loadingScreen() != null)
-			// Render the loading screen to our batch.
-			loadingScreen.renderTo(batch);
+		loadingScreen.renderTo(batch);
 	}
 	
 	@Override
@@ -75,22 +74,6 @@ public class LoadingState implements ApplicationState {
 	 */
 	public float percentComplete() {
 		return assetManager.getProgress();
-	}
-	
-	/*
-	 * @return the renderable that the LoadingState
-	 * defers rendering to while loading.
-	 */
-	public Renderable loadingScreen() {
-		return loadingScreen;
-	}
-	
-	/*
-	 * Set the renderable that the LoadingState
-	 * will defer rendering to while loading.
-	 */
-	public void setLoadingScreen(Renderable loadingScreen) {
-		this.loadingScreen = loadingScreen;
 	}
 	
 	/*

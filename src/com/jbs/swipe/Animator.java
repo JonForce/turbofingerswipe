@@ -3,6 +3,7 @@ package com.jbs.swipe;
 import java.util.ArrayList;
 
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.equations.Linear;
 import aurelienribon.tweenengine.equations.Quad;
 
 import com.badlogic.gdx.math.Vector2;
@@ -79,6 +80,22 @@ public class Animator {
 				Tween.to(tile, TileAccessor.SCALE_TWEEN, time)
 					.ease(Quad.IN)
 					.target(0, 0)
+					.start(game.tweenManager())
+				);
+		return this;
+	}
+	
+	/**
+	 * Rotate the specified Graphic FOREVER.
+	 * @param target The Graphic to rotate FOREVER.
+	 * @param speed The speed at which to rotate.
+	 */
+	public Animator rotateGraphicIndefinitely(Graphic target, float speed) {
+		tweens.add(
+				Tween.to(target, GraphicAccessor.ROTATION_TWEEN, speed)
+					.target(360f)
+					.ease(Linear.INOUT)
+					.repeat(-1, 0)
 					.start(game.tweenManager())
 				);
 		return this;

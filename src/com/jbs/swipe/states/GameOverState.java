@@ -11,6 +11,7 @@ import com.jbs.swipe.ScreenOverlay;
 import com.jbs.swipe.gui.Font;
 import com.jbs.swipe.gui.buttons.HomeButton;
 import com.jbs.swipe.gui.buttons.RestartButton;
+import com.jbs.swipe.levels.LevelState;
 
 public abstract class GameOverState implements ApplicationState {
 	
@@ -57,9 +58,6 @@ public abstract class GameOverState implements ApplicationState {
 		// If the buttons have not been initialized,
 		if (!buttonsInitialized())
 			initializeButtons();
-		
-		// Submit the current score to potentially be set as the new high-score.
-		game.submitScore(currentScore());
 	}
 	
 	@Override

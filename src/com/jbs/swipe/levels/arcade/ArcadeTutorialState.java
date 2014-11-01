@@ -1,4 +1,4 @@
-package com.jbs.swipe.states;
+package com.jbs.swipe.levels.arcade;
 
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
@@ -13,6 +13,7 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.GraphicAccessor;
+import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.tiles.Direction;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
@@ -57,13 +58,16 @@ public class ArcadeTutorialState extends TutorialState {
 	
 	@Override
 	public void enterState() {
-		super.enterState();
 		System.out.println("Entering ArcadeTutorialState.");
+		
+		super.enterState();
 		useTip(0);
 	}
 	
 	@Override
 	public void exitState() {
+		System.out.println("Exiting ArcadeTutorialState.");
+		
 		super.exitState();
 		super.reset();
 		killAllTweens();
@@ -72,6 +76,7 @@ public class ArcadeTutorialState extends TutorialState {
 	@Override
 	public void updateApplication(Application app) {
 		super.updateApplication(app);
+		
 		gotItButton.updateWith(app.input);
 		bottomDemoTile().updateTranslationAnimation();
 		topDemoTile().updateTranslationAnimation();
@@ -97,17 +102,17 @@ public class ArcadeTutorialState extends TutorialState {
 	}
 	
 	@Override
-	Graphic[] tips() {
+	public Graphic[] tips() {
 		return tips;
 	}
 	
 	@Override
-	String tutorialName() {
+	public String tutorialName() {
 		return "arcadetutorial";
 	}
 	
 	@Override
-	void useTip(int tip) {
+	public void useTip(int tip) {
 		if (tip == 0) {
 			buildFirstTipScene();
 		} else if (tip == 1) {
