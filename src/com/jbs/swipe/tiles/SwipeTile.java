@@ -6,6 +6,7 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -58,6 +59,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		target; // The position to translate the SwipeTile to.
 	
 	private float
+		opacity = 1f,
 		translationDamping, // The damping value to use when translating the SwipeTile to the target position.
 		volume = defaultVolume, // The volume to play the SwipeTile's sounds at.
 		startTime, // The nano time that the SwipeTile was constructed
@@ -164,11 +166,16 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 
 	@Override
 	public void renderTo(SpriteBatch batch) {
+		Color oldBatchColor = batch.getColor();
+		batch.setColor(oldBatchColor.r, oldBatchColor.g, oldBatchColor.b, this.opacity());
+		
 		// First render the background tile to the batch.
 		tile.renderTo(batch);
 		
 		// Next, render the arrow to the batch.
 		arrow.renderTo(batch);
+		
+		batch.setColor(oldBatchColor);
 	}
 	
 	public void updateWith(InputProxy input) {
@@ -190,7 +197,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		if (expired() && !wasExpired)
 			if (swipeListener != null)
 				// Call the onExpire() event.
-				swipeListener.onExpire(this);
+				swipeListener.recieveEvent(this, Event.TILE_EXPIRED);
 		
 		// Save the state of our SwipeTile.
 		wasExpired = expired();
@@ -229,9 +236,13 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 								public void onEvent(int type, BaseTween<?> source) {
 									if (type == TweenCallback.COMPLETE)
 										if (swipeListener != null)
-											swipeListener.onCorrectSwipe(tile); // Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
+											// Notify the SwipeListener that the Tile has finished.
+											swipeListener.recieveEvent(tile, Event.TILE_FINISHED);
 								}
 							});
+						
+						// Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
+						swipeListener.recieveEvent(tile, Event.TILE_CORRECTLY_SWIPED);
 					} else {
 						// We have determined the swipe to have been incorrect.
 						
@@ -240,7 +251,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 						
 						if (swipeListener != null)
 							// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
-							swipeListener.onIncorrectSwipe(tile);
+							swipeListener.recieveEvent(tile, Event.TILE_INCORRECTLY_SWIPED);
 					}
 				}
 			};
@@ -283,42 +294,47 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.volume = newVolume;
 	}
 	
-	/* Reset the SwipeTile's Volume to it's default value. */
+	/** Reset the SwipeTile's Volume to it's default value. */
 	public void resetVolume() {
 		this.volume = defaultVolume;
 	}
 	
-	/* Translate the SwipeTile by the specified amount. */
+	/** Translate the SwipeTile by the specified amount. */
 	public void translate(float amountX, float amountY) {
 		this.center.add(amountX, amountY);
 	}
 	
-	/* Scale the SwipeTile's arrow and background by the specified scalar. */
+	/** Set the opacity to render the Tile at. */
+	public void setOpacity(float newOpacity) {
+		this.opacity = newOpacity;
+	}
+	
+	/** Scale the SwipeTile's arrow and background by the specified scalar. */
 	public void scale(float scalarX, float scalarY) {
 		tile.scale(scalarX, scalarY);
 		arrow.scale(scalarX, scalarY);
 	}
 	
-	/*
+	/**
 	 * Scale the SwipeTile's arrow and background around it's center.
 	 */
 	public void scale(float scalar) {
 		this.scale(scalar, scalar);
 	}
 	
-	/*
+	/**
 	 * Scale the SwipeTile's arrow around it's center.
 	 */
 	public void scaleArrow(float scalar) {
 		arrow.scale(scalar);
 	}
 	
-	/* Set the SwipeListener to notify of SwipeTile events. */
+	/** Set the SwipeListener to notify of SwipeTile events. */
 	public void setSwipeListener(SwipeListener newListener) {
 		this.swipeListener = newListener;
 	}
 	
-	/* Set the SwipeTile's arrow textures and swipe requirements to suite the
+	/** Set the SwipeTile's arrow textures and swipe requirements to suite the
 	 * specified direction. */
 	public void setDirection(Direction direction) {
 		// Set the arrow textures to the new direction's corresponding arrow textures.
@@ -330,13 +346,13 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		refreshArrow();
 	}
 	
-	/* Set the required swipe direction and magnitude. */
+	/** Set the required swipe direction and magnitude. */
 	public void setSwipeRequirement(Vector2 newRequirement) {
 		this.requiredSwipeDirection = newRequirement.angle();
 		this.requiredSwipeMagnitude = newRequirement.len();
 	}
 	
-	/* Set the SwipeTile to use a different direction than it currently is using. */
+	/** Set the SwipeTile to use a different direction than it currently is using. */
 	public void changeDirection() {
 		// Define the direction we want to change from as our current direction.
 		final float oldDirection = this.requiredSwipeDirection;
@@ -346,28 +362,35 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 			setDirection(SwipeTile.randomDirection());
 	}
 	
-	/* @return the tolerated deviation in the swipe's direction from the required
+	/** @return the tolerated deviation in the swipe's direction from the required
 	 * swipe direction in degrees. */
 	public float swipeInaccuracyTolerance() {
 		return swipeAngleTolerance;
 	}
 	
-	/* @return the volume the SwipeTile will play it's Sounds at. */
+	/**
+	 * @return the opacity to render at.
+	 */
+	public float opacity() {
+		return this.opacity;
+	}
+	
+	/** @return the volume the SwipeTile will play it's Sounds at. */
 	public float volume() {
 		return this.volume;
 	}
 	
-	/* @return the percent that the SwipeTile is expired in decimal form. */
+	/** @return the percent that the SwipeTile is expired in decimal form. */
 	public float percentExpired() {
 		return deltaTime()/timeToSwipe;
 	}
 	
-	/* @return true when the SwipeTile's arrow is green. */
+	/** @return true when the SwipeTile's arrow is green. */
 	public boolean isCorrectlySwiped() {
 		return this.tileState() == TileState.CORRECTLY_SWIPED;
 	}
 	
-	/*
+	/**
 	 * @return true if the SwipeTile has been created for longer
 	 * then the maximum time to swipe the tile and has not been correctly swiped.
 	 */
@@ -375,7 +398,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return this.tileState() == TileState.EXPIRED;
 	}
 	
-	/* @return true if the point is within the SwipeTile's bounds. */
+	/** @return true if the point is within the SwipeTile's bounds. */
 	public boolean contains(Vector2 point) {
 		return boundingBox().contains(point.x, point.y);
 	}
@@ -451,6 +474,12 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return new Vector2(tile.width() / originalTileSize.x, tile.height() / originalTileSize.y);
 	}
 	
+	/* @return the time the SwipeTile's arrow should remain green before
+	 * triggering the onCorrectSwipe() event. */
+	public final float arrowGreenTime() {
+		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
+	}
+	
 	/* Refresh the SwipeTile's arrow's Texture. */
 	protected void refreshArrow() {
 		if (this.isCorrectlySwiped())
@@ -496,12 +525,6 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		final float cappedStage = Math.min(this.lifecycle.length - 1, uncappedStage);
 		
 		return (int) (cappedStage);
-	}
-	
-	/* @return the time the SwipeTile's arrow should remain green before
-	 * triggering the onCorrectSwipe() event. */
-	protected float arrowGreenTime() {
-		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
 	}
 	
 	/*
@@ -579,11 +602,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	}
 	
 	@Override
-	public void onCorrectSwipe(SwipeTile tile) { }
-	@Override
-	public void onIncorrectSwipe(SwipeTile tile) { }
-	@Override
-	public void onExpire(SwipeTile tile) { }
+	public void recieveEvent(SwipeTile tile, Event event) { }
 	
 	/* @return the default SwipeTile volume. */
 	public static float defaultVolume() {

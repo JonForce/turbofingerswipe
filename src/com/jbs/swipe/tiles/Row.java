@@ -65,7 +65,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		if (this.visible())
+		if (this.isVisible())
 			renderTilesTo(batch);
 	}
 	
@@ -74,21 +74,21 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		updateTilesWith(input);
 	}
 	
-	/* Render all the SwipeTiles in the Row to the SpriteBatch. */
+	/** Render all the SwipeTiles in the Row to the SpriteBatch. */
 	public void renderTilesTo(SpriteBatch batch) {
 		for (SwipeTile tile : tiles)
 			if (tile != null)
 				tile.renderTo(batch);
 	}
 	
-	/* Update all the SwipeTiles in the Row with the InputProxy. */
+	/** Update all the SwipeTiles in the Row with the InputProxy. */
 	public void updateTilesWith(InputProxy input) {
 		for (SwipeTile tile : tiles)
 			if (tile != null)
 				tile.updateWith(input);
 	}
 	
-	/* Reset all the SwipeTiles in the Row. */
+	/** Reset all the SwipeTiles in the Row. */
 	public void resetTiles() {
 		for (SwipeTile tile : tiles)
 			if (tile != null)
@@ -102,7 +102,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		this.pattern = newPattern;
 	}
 	
-	/* Set the direction for the Row to move in when expanding and collapsing. */
+	/** Set the direction for the Row to move in when expanding and collapsing. */
 	public void setDirection(int newDirection) {
 		final String errorMessage = "Error in setDirection("+newDirection+") : ";
 		// Assert that the direction is a valid direction.
@@ -115,17 +115,17 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		this.direction = newDirection;
 	}
 	
-	/* Set the time (in milliseconds) that the player has to swipe a SwipeTile created by the Row. */
+	/** Set the time (in milliseconds) that the player has to swipe a SwipeTile created by the Row. */
 	public void setTimeToSwipe(int newTimeToSwipe) {
 		this.timeToSwipe = newTimeToSwipe;
 	}
 	
-	/* Set the Listener to notify of all the Row's SwipeTile's events. */
+	/** Set the Listener to notify of all the Row's SwipeTile's events. */
 	public void setSwipeListener(SwipeListener newListener) {
 		this.listener = newListener;
 	}
 	
-	/* Collapse the Row over it's n'th Tile. */
+	/** Collapse the Row over it's n'th Tile. */
 	public void collapseTile(int tileToDissolve, int direction) {
 		String errorMessage = "Error in collapseTile("+tileToDissolve+", "+direction+") : ";
 		
@@ -152,9 +152,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 			INDEX_TO_ADD_TILE_AT = (direction == DIRECTION_RIGHT)? 0 : numberOfTiles + direction;
 		
 		for (int tile = START_INDEX; tile != INDEX_TO_ADD_TILE_AT; tile -= direction) {
-			
 			this.tiles[tile] = this.tiles[tile - direction];
-			
 			this.tiles[tile].setTranslationTarget(getSlot(tile), animationSpeed);
 		}
 		
@@ -168,7 +166,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	}
 	
 	/** @return true when the Row may be rendered. */
-	public final boolean visible() {
+	public final boolean isVisible() {
 		return this.visible;
 	}
 	
@@ -245,48 +243,39 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		for (int index = 0; index != tiles.length; index ++)
 			tiles[index].setTranslationTarget(getSlot(index), this.animationSpeed);
 	}
-	/* Expand the Row to use another SwipeTile. */
+	/** Expand the Row to use another SwipeTile. */
 	public final void expand() { expand(this.direction); }
 	
+	
 	@Override
-	public final void onCorrectSwipe(SwipeTile tile) {
-		if (this.listener != null)
-			listener.onCorrectSwipe(tile);
+	public final void recieveEvent(SwipeTile tile, Event event) {
 		
-		// Collapse the Row over the SwipeTile that was swiped.
-		for (int i = 0; i != numberOfTiles; i ++)
-			if (tiles[i].equals(tile))
-				collapseTile(i, direction);
+		if (event == Event.TILE_FINISHED) {
+			// Collapse the Row over the SwipeTile that should be removed.
+			for (int i = 0; i != numberOfTiles; i ++)
+				if (tiles[i].equals(tile))
+					collapseTile(i, direction);
+		} else
+			if (this.listener != null)
+				listener.recieveEvent(tile, event);
 	}
 	
-	@Override
-	public final void onIncorrectSwipe(SwipeTile tile) {
-		if (this.listener != null)
-			listener.onIncorrectSwipe(tile);
-	}
-	
-	@Override
-	public final void onExpire(SwipeTile tile) {
-		if (this.listener != null)
-			listener.onExpire(tile);
-	}
-	
-	/* @return the amount of space between each of the Row's slots. */
+	/** @return the amount of space between each of the Row's slots. */
 	public final int spacing() {
 		return game.screenWidth() / this.numberOfTiles;
 	}
 	
-	/* @return the height of the Row. */
+	/** @return the height of the Row. */
 	public final int height() {
 		return (int) this.tiles[0].boundingBox().height;
 	}
 	
-	/* @return the number of SwipeTiles in the Row. */
+	/** @return the number of SwipeTiles in the Row. */
 	public final int numberOfTiles() {
 		return this.numberOfTiles;
 	}
 	
-	/* Create and return a SwipeTile in the specified slot. */
+	/** Create and return a SwipeTile in the specified slot. */
 	protected SwipeTile createTileAt(int slot, float timeToSwipe, float scaleX, float scaleY) {
 		if (scaleX <= 0 || scaleY <= 0)
 			throw new RuntimeException("Scale must be > 0");
@@ -324,7 +313,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		}
 	}
 	
-	/* Re-initialize the Tile and slot-position arrays with the specified size.
+	/** Re-initialize the Tile and slot-position arrays with the specified size.
 	 * Copies over references to Tiles from the current Tile-array into the new Tile-array starting at
 	 * the specified index.
 	 * @param startCopyingIndex the index to begin copying over Tile references into the new Tile-array. */
@@ -350,19 +339,19 @@ public class Row implements SwipeListener, Renderable, Updatable {
 			this.tiles[index] = oldTileArray[index];
 	}
 	
-	/* @return the position of the n'th slot. */
+	/** @return the position of the n'th slot. */
 	protected final Vector2 getSlot(int slotIndex) {
 		// Return a position one to the right of the requested index to shift the slots into the
 		// center of the slots.
 		return this.slotPositions[slotIndex + 1];
 	}
 	
-	/* Return a value that is 'normal' percent between 'start' and 'end'. */
+	/** Return a value that is 'normal' percent between 'start' and 'end'. */
 	protected final Vector2 interpolate(Vector2 start, Vector2 end, float normal) {
 		return new Vector2(interpolate(start.x, end.x, normal), interpolate(start.y, end.y, normal));
 	}
 	
-	/* Return a value that is 'normal' percent between 'start' and 'end'. */
+	/** Return a value that is 'normal' percent between 'start' and 'end'. */
 	protected final float interpolate(float start, float end, float normal) {
 		return start + (end - start)*normal;
 	}

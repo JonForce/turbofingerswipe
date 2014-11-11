@@ -52,6 +52,7 @@ public class ArcadeModeEasy extends ArcadeMode {
 	@Override
 	protected void updateLevelWith(InputProxy input) {
 		super.updateLevelWith(input);
+		/*
 		if (score() >= SCORE_TO_REVEAL_ROWS_AT) {
 			// Reveal Rows if they arnt already revealed.
 			
@@ -67,7 +68,7 @@ public class ArcadeModeEasy extends ArcadeMode {
 			if (topRow().visible())
 				hideTopRow();
 		}
-		
+		*/
 	}
 
 	@Override

@@ -14,6 +14,7 @@ import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.levels.normal.NormalMode;
+import com.jbs.swipe.levels.puzzle.PuzzleMode;
 
 public final class GameModeSelectionState implements ApplicationState {
 	
@@ -104,30 +105,57 @@ public final class GameModeSelectionState implements ApplicationState {
 		
 	}
 	
+	/**
+	 * Initialize all the State's components.
+	 */
 	private void initialize() {
+		final float ROTATION_ANIMATION_DURATION = 100f;
+		
+		// Initialize the Advanced GameMode Button.
 		advancedButton = new Button(offscreen.cpy(), game.getTexture(ADVANCED_CIRCLE)) {
+			// When the Button is pressed, rotate it very quickly indefinitely.
 			public void onPress() {
 				new Animator(game)
-					.rotateGraphicIndefinitely(this, 100f);
+					.rotateGraphicIndefinitely(this, ROTATION_ANIMATION_DURATION);
 			}
-			
+			// When the Button is released, bind the "Advanced" GameMode (Which is really just the Puzzle GameMode).
 			public void onRelease() {
 				game.setLevelState(new ArcadeModeEasy(game));
 				game.setState(game.levelState());
 			}
 		};
+		// Initialize the Normal GameMode Button.
 		normalButton = new Button(offscreen.cpy(), game.getTexture(NORMAL_CIRCLE)) {
+			// When the Button is pressed, rotate it very quickly indefinitely.
 			public void onPress() {
 				new Animator(game)
-					.rotateGraphicIndefinitely(this, 100f);
+					.rotateGraphicIndefinitely(this, ROTATION_ANIMATION_DURATION);
 			}
-			
+			// When the Button is released, bind the Normal GameMode.
 			public void onRelease() {
 				game.setLevelState(new NormalMode(game));
 				game.setState(game.levelState());
 			}
 		};
-		puzzleButton = new Button(offscreen.cpy(), game.getTexture(PUZZLE_CIRCLE));
+		// Initialize the Puzzle GameMode Button.
+		puzzleButton = new Button(offscreen.cpy(), game.getTexture(PUZZLE_CIRCLE)) {
+			// When the Button is pressed, rotate it very quickly indefinitely.
+			public void onPress() {
+				new Animator(game)
+					.rotateGraphicIndefinitely(this, ROTATION_ANIMATION_DURATION);
+			}
+			// When the Button is released, bind the Normal GameMode.
+			public void onRelease() {
+				game.setLevelState(new PuzzleMode(game) {
+					@Override
+					protected boolean hasBoughtPuzzleMode() {
+						// For now, always assume that the User has bought PuzzleMode.
+						return true;
+					}
+				});
+				game.setState(game.levelState());
+			}
+		};
 		
 		advancedText = new Graphic(offscreen.cpy(), game.getTexture(ADVANCED_TEXT)) {
 			public int x() { return advancedButton.x(); }

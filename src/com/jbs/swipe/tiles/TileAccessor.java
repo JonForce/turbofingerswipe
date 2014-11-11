@@ -7,20 +7,24 @@ import aurelienribon.tweenengine.TweenAccessor;
 public class TileAccessor implements TweenAccessor<SwipeTile> {
 	
 	public static final int
-		POSITION_TWEEN = 666,
-		SCALE_TWEEN = 667;
+		OPACITY_TWEEN = 666,
+		SCALE_TWEEN = 667,
+		POSITION_TWEEN = 668;
 	
 	@Override
 	public int getValues(SwipeTile target, int tweenType, float[] returnValues) {
 		switch (tweenType) {
-			case POSITION_TWEEN:
-				returnValues[0] = target.x();
-				returnValues[1] = target.y();
+			case OPACITY_TWEEN:
+				returnValues[0] = target.opacity();
 				return 2;
 			case SCALE_TWEEN:
 				final Vector2 scale = target.scale();
 				returnValues[0] = scale.x;
 				returnValues[1] = scale.y;
+				return 2;
+			case POSITION_TWEEN:
+				returnValues[0] = target.x();
+				returnValues[1] = target.y();
 				return 2;
 			default: assert false; return -1;
 		}
@@ -29,10 +33,15 @@ public class TileAccessor implements TweenAccessor<SwipeTile> {
 	@Override
 	public void setValues(SwipeTile target, int tweenType, float[] newValues) {
 		switch (tweenType) {
-			case POSITION_TWEEN:
-				target.setPosition(newValues[0], newValues[1]);
+			case OPACITY_TWEEN:
+				target.setOpacity(newValues[0]);
+				break;
 			case SCALE_TWEEN:
 				target.setScale(newValues[0], newValues[1]);
+				break;
+			case POSITION_TWEEN:
+				target.setPosition(newValues[0], newValues[1]);
+				break;
 			default: assert false;
 		}
 	}

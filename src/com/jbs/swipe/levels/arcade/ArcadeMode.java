@@ -2,6 +2,7 @@ package com.jbs.swipe.levels.arcade;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
+import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
 import com.jbs.swipe.levels.LevelState;
@@ -28,39 +29,43 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	}
 	
 	@Override
-	public void onCorrectSwipe(SwipeTile tile) {
-		// Increment the correct swipe count.
-		super.incrementScore();
-		// Remove the swiped Tile from the Touch notification list.
-		super.touchManager().removeListener(tile);
-		// Update the Rows.
-		updateRowControllers();
-	}
-	
-	@Override
-	public void onIncorrectSwipe(SwipeTile tile) {
-		System.out.println("Level's tile was incorrectly swipped!");
-		// Remove the incorrectly swiped Tile from the Touch notification list.
-		super.touchManager().removeListener(tile);
+	public void recieveEvent(SwipeTile tile, Event event) {
+		System.out.println("Recieved event : " + event);
 		
-		// Fail the Level.
-		super.fail();
-	}
-	
-	@Override
-	public void onExpire(SwipeTile tile) {
-		System.out.println("Level's tile expired!");
-		// Remove the expired Tile from the Touch notification list.
-		super.touchManager().removeListener(tile);
-		
-		// Fail the Level.
-		super.fail();
+		if (event == Event.TILE_CORRECTLY_SWIPED) {
+			// Increment the correct swipe count.
+			super.incrementScore();
+			// Remove the swiped Tile from the Touch notification list.
+			super.touchManager().removeListener(tile);
+			// Update the Rows.
+			updateRowControllers();
+		} else if (event == Event.TILE_INCORRECTLY_SWIPED || event == Event.TILE_EXPIRED) {
+			System.out.println("Tile was swiped incorrectly swiped or expired.");
+			
+			final float
+				SHAKE_AMPLITUDE = 50f,
+				SHAKE_DURATION = 150f;
+			final int
+				SHAKES = 3;
+			
+			new Animator(game())
+				.shakeTile(tile, SwipeTile.createSwipe(tile.direction(), SHAKE_AMPLITUDE).mul(-1), SHAKE_DURATION, SHAKES);
+			
+			if (!topRow().isVisible())
+				revealTopRow();
+			else if (!bottomRow().isVisible())
+				revealBottomRow();
+			else {
+				super.touchManager().removeListener(tile);
+				super.fail();
+			}
+		}
 	}
 	
 	@Override
 	protected void renderLevelTo(SpriteBatch batch) {
 		for (Row row : this.rows)
-			if (row != null && row.visible())
+			if (row != null && row.isVisible())
 				row.renderTo(batch);
 	}
 	
@@ -68,7 +73,7 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	protected void updateLevelWith(InputProxy input) {
 		// For all non-null Rows in the Level,
 		for (Row row : this.rows)
-			if (row != null && row.visible())
+			if (row != null && row.isVisible())
 				row.updateWith(input);
 	}
 	

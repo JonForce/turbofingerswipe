@@ -17,16 +17,10 @@ import com.jbs.framework.io.AudioProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
-import com.jbs.swipe.gui.LoadingScreen;
 import com.jbs.swipe.levels.LevelState;
-import com.jbs.swipe.levels.TutorialState;
-import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
-import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
 import com.jbs.swipe.states.GameModeSelectionState;
-import com.jbs.swipe.states.GameOverState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
-import com.jbs.swipe.states.PausedState;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
 
