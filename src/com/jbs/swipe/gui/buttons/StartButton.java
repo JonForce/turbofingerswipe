@@ -9,8 +9,8 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.rendering.ui.Button;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.tiles.Direction;
 
 public class StartButton implements Renderable {

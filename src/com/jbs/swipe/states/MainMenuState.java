@@ -6,8 +6,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.gui.buttons.StartButton;
 import com.jbs.swipe.tiles.Direction;
 

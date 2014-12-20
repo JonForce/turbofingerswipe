@@ -161,13 +161,10 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		this.tiles[INDEX_TO_ADD_TILE_AT].setTranslationTarget(getSlot(INDEX_TO_ADD_TILE_AT), animationSpeed);
 	}
 	
-	public final SwipeTile[] tiles() {
-		return this.tiles;
-	}
-	
-	/** @return true when the Row may be rendered. */
-	public final boolean isVisible() {
-		return this.visible;
+	public final void collapseTile(SwipeTile tile) {
+		for (int i = 0; i != numberOfTiles(); i ++)
+			if (this.tiles[i].equals(tile))
+				collapseTile(i);
 	}
 	
 	/**
@@ -246,10 +243,8 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	/** Expand the Row to use another SwipeTile. */
 	public final void expand() { expand(this.direction); }
 	
-	
 	@Override
 	public final void recieveEvent(SwipeTile tile, Event event) {
-		
 		if (event == Event.TILE_FINISHED) {
 			// Collapse the Row over the SwipeTile that should be removed.
 			for (int i = 0; i != numberOfTiles; i ++)
@@ -258,6 +253,22 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		} else
 			if (this.listener != null)
 				listener.recieveEvent(tile, event);
+	}
+	
+	public final SwipeTile[] tiles() {
+		return this.tiles;
+	}
+	
+	public final boolean contains(SwipeTile tile) {
+		for (SwipeTile t : tiles)
+			if (t.equals(tile))
+				return true;
+		return false;
+	}
+	
+	/** @return true when the Row may be rendered. */
+	public final boolean isVisible() {
+		return this.visible;
 	}
 	
 	/** @return the amount of space between each of the Row's slots. */

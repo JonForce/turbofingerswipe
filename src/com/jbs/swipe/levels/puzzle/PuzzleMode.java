@@ -8,14 +8,13 @@ import aurelienribon.tweenengine.TweenCallback;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
 import com.jbs.swipe.tiles.SwipeListener;
 import com.jbs.swipe.tiles.SwipeTile;
-import com.jbs.swipe.tiles.SwipeListener.Event;
 
 public abstract class PuzzleMode extends LevelState implements SwipeListener {
 	
@@ -62,6 +61,11 @@ public abstract class PuzzleMode extends LevelState implements SwipeListener {
 			super.touchManager().removeListener(tile);
 			super.fail();
 		}
+	}
+	
+	@Override
+	public SwipeTile[] tiles() {
+		return null;
 	}
 	
 	@Override

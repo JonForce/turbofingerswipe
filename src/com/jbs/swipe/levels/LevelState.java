@@ -13,6 +13,7 @@ import com.jbs.swipe.gui.buttons.MuteButton;
 import com.jbs.swipe.gui.buttons.PauseButton;
 import com.jbs.swipe.states.GameOverState;
 import com.jbs.swipe.states.PausedState;
+import com.jbs.swipe.tiles.SwipeTile;
 
 public abstract class LevelState implements ApplicationState {
 	
@@ -83,11 +84,13 @@ public abstract class LevelState implements ApplicationState {
 	
 	/** Initialize the Level's base components. */
 	public final void initialize() {
-		this.score = new Score(game());
 		this.touchManager = new TouchManager(4); // 4 is the max possible concurrent touches to track.
-		this.tutorialState = createTutorial();
-		this.gameOverState = createGameOverState();
-		this.pausedState = createPausedState();
+		this.score = new Score(game()); // Initialize the score-keeping mechanism.
+		
+		this.tutorialState = createTutorial(); // Retrieve the Tutorial from the subclass.
+		this.gameOverState = createGameOverState(); // Retrieve the GameOverState from the subclass.
+		this.pausedState = createPausedState(); // Retrieve the PausedState from the subclass.
+		
 		this.initializeGUI();
 		
 		// Initialize abstract components.
@@ -126,6 +129,7 @@ public abstract class LevelState implements ApplicationState {
 		this.score.increment();
 	}
 	
+	/** @return the Level's TouchManager, a mechanism that notifies listeners of touch events. */
 	public final TouchManager touchManager() {
 		return this.touchManager;
 	}
@@ -155,6 +159,8 @@ public abstract class LevelState implements ApplicationState {
 		game.preferences().putInteger(levelName() + ":Highscore", newHighscore);
 	}
 	
+	/** @return all the SwipeTiles in the Level. */
+	public abstract SwipeTile[] tiles();
 	/** Render the abstract Renderables to the specified SpriteBatch. */
 	protected abstract void renderLevelTo(SpriteBatch batch);
 	/** Update the abstract components of the Level. */

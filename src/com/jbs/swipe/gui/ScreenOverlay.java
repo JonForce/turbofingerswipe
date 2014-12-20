@@ -1,6 +1,7 @@
-package com.jbs.swipe;
+package com.jbs.swipe.gui;
 
 import com.jbs.framework.rendering.Graphic;
+import com.jbs.swipe.Game;
 
 public class ScreenOverlay extends Graphic {
 	

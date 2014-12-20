@@ -1,10 +1,15 @@
 package com.jbs.swipe.levels.arcade;
 
+import aurelienribon.tweenengine.BaseTween;
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
+import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.tiles.Direction;
@@ -12,6 +17,8 @@ import com.jbs.swipe.tiles.Row;
 import com.jbs.swipe.tiles.RowController;
 import com.jbs.swipe.tiles.SwipeListener;
 import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.traps.BombSpawner;
+import com.jbs.swipe.traps.DarkHoleSpawner;
 
 public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	
@@ -24,32 +31,42 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	/* The Controllers to dictate the automatic expansion and contraction of the Rows. */
 	protected RowController[] rowControllers;
 	
+	private BombSpawner bombSpawner;
+	private DarkHoleSpawner darkHoleSpawner;
+	
 	public ArcadeMode(Game game) {
 		super(game);
 	}
 	
 	@Override
-	public void recieveEvent(SwipeTile tile, Event event) {
-		System.out.println("Recieved event : " + event);
-		
+	public void recieveEvent(final SwipeTile tile, Event event) {
 		if (event == Event.TILE_CORRECTLY_SWIPED) {
 			// Increment the correct swipe count.
 			super.incrementScore();
 			// Remove the swiped Tile from the Touch notification list.
 			super.touchManager().removeListener(tile);
-			// Update the Rows.
-			updateRowControllers();
 		} else if (event == Event.TILE_INCORRECTLY_SWIPED || event == Event.TILE_EXPIRED) {
 			System.out.println("Tile was swiped incorrectly swiped or expired.");
 			
 			final float
 				SHAKE_AMPLITUDE = 50f,
-				SHAKE_DURATION = 150f;
+				SHAKE_DURATION = 150; // Milliseconds.
 			final int
 				SHAKES = 3;
 			
 			new Animator(game())
-				.shakeTile(tile, SwipeTile.createSwipe(tile.direction(), SHAKE_AMPLITUDE).mul(-1), SHAKE_DURATION, SHAKES);
+				// Shake the Tile in the opposite direction that it was pointing.
+				.shakeTile(tile, SwipeTile.createSwipe(tile.direction(), SHAKE_AMPLITUDE).mul(-1), SHAKE_DURATION, SHAKES)
+				.fadeTileAway(tile, SHAKE_DURATION);
+			
+			delayEvent(new TweenCallback() {
+				@Override
+				public void onEvent(int type, BaseTween<?> source) {
+					for (Row row : rows)
+						if (row != null && row.contains(tile))
+							row.collapseTile(tile);
+				}
+			}, SHAKE_DURATION);
 			
 			if (!topRow().isVisible())
 				revealTopRow();
@@ -60,6 +77,22 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 				super.fail();
 			}
 		}
+		
+		// Update the Rows.
+		updateRowControllers();
+	}
+	
+	@Override
+	public final SwipeTile[] tiles() {
+		final int
+			numberOfTiles = centerRow().numberOfTiles() + topRow().numberOfTiles() + bottomRow().numberOfTiles();
+		final SwipeTile[]
+			collection = new SwipeTile[numberOfTiles];
+		int tiles = 0;
+		for (Row row : rows)
+			for (SwipeTile tile : row.tiles())
+				collection[tiles++] = tile;
+		return collection;
 	}
 	
 	@Override
@@ -67,6 +100,9 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		for (Row row : this.rows)
 			if (row != null && row.isVisible())
 				row.renderTo(batch);
+		
+		bombSpawner.renderTo(batch);
+		darkHoleSpawner.renderTo(batch);
 	}
 	
 	@Override
@@ -75,6 +111,9 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		for (Row row : this.rows)
 			if (row != null && row.isVisible())
 				row.updateWith(input);
+		
+		bombSpawner.updateWith(input);
+		darkHoleSpawner.updateWith(input);
 	}
 	
 	@Override
@@ -82,6 +121,12 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		initializeRows();
 		initializeControllers();
 		initializeDifficulty();
+		
+		bombSpawner = new BombSpawner(game(), new Vector2(150, 70));
+		bombSpawner.setStock(10);
+		
+		darkHoleSpawner = new DarkHoleSpawner(game(), new Vector2(550, 100));
+		darkHoleSpawner.setStock(10);
 	}
 	
 	@Override
@@ -220,5 +265,9 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		rowControllers[0] = new RowController(bottomRow());
 		rowControllers[1] = new RowController(centerRow());
 		rowControllers[2] = new RowController(topRow());
+	}
+	
+	private void delayEvent(TweenCallback callback, float delay) {
+		Tween.call(callback).delay(delay).start(game().tweenManager());
 	}
 }

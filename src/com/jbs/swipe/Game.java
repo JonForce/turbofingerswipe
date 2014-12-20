@@ -126,10 +126,15 @@ public class Game extends Application {
 	 * Throws a RuntimeException if the Game is not paused. */
 	@Override
 	public final void resume() {
-		// Resume the background music.
-		playBackgroundMusic(true); // True because the background Music should be looped.
-		// Resume the Level.
-		setState(levelState());
+		// If the Game's assets are loaded,
+		if (loadingState().percentComplete() == 1f)
+			// Resume the background music.
+			playBackgroundMusic(true); // True because the background Music should be looped.
+		
+		// If there is a Level to resume,
+		if (levelState() != null)
+			// Resume the Level.
+			setState(levelState());
 	}
 	
 	@Override
@@ -246,6 +251,8 @@ public class Game extends Application {
 		tweenManager = new TweenManager();
 		Tween.registerAccessor(Graphic.class, new GraphicAccessor());
 		Tween.registerAccessor(SwipeTile.class, new TileAccessor());
+		Tween.registerAccessor(Vector2.class, new Vector2Accessor());
+		Tween.setWaypointsLimit(2);
 	}
 	
 	/** Initialize the Game's ApplicationStates. */

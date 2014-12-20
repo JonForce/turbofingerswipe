@@ -7,7 +7,7 @@ import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
-import com.jbs.swipe.ScreenOverlay;
+import com.jbs.swipe.gui.ScreenOverlay;
 import com.jbs.swipe.gui.buttons.HomeButton;
 import com.jbs.swipe.gui.buttons.RestartButton;
 import com.jbs.swipe.gui.buttons.ResumeButton;

@@ -14,10 +14,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
 import com.jbs.swipe.TouchListener;
+import com.jbs.swipe.effects.Animator;
 
 public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	
@@ -230,7 +230,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 						tile.setState(correctlySwipedState);
 						
 						new Animator(game)
-							.shrinkTile(arrowGreenTime(), tile)
+							.shrinkTile(tile, arrowGreenTime())
 							.getTween(0).setCallback(new TweenCallback() {
 								@Override
 								public void onEvent(int type, BaseTween<?> source) {
@@ -403,6 +403,11 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return boundingBox().contains(point.x, point.y);
 	}
 	
+	/** @return the listener of this Tile's events. */
+	public final SwipeListener swipeListener() {
+		return this.swipeListener;
+	}
+	
 	/**
 	 * @return The Direction that the SwipeTile faces, throws RuntimeException if the Tile's required swipe
 	 * direction isnt a multiple of 90 degrees.
@@ -430,17 +435,24 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.scale(scalarX/oldScale.x, scalarY/oldScale.y);
 	}
 	
-	/* Translate the tile so it's center is at the specified coordinates. */
+	/** Set the rotation of the SwipeTile.
+	 * @param newRotation The new rotation in degrees. */
+	public final void setRotation(float newRotation) {
+		tile.setRotation(newRotation);
+		arrow.setRotation(newRotation);
+	}
+	
+	/** Translate the tile so it's center is at the specified coordinates. */
 	public final void setPosition(float x, float y) {
 		translate(x - this.x(), y - this.y());
 	}
 	
-	/* Translate the tile so it's center is at the specified coordinates. */
+	/** Translate the tile so it's center is at the specified coordinates. */
 	public final void setPosition(Vector2 newPosition) {
 		setPosition(newPosition.x, newPosition.y);
 	}
 	
-	/* Update the SwipeTile's translation animation. */
+	/** Update the SwipeTile's translation animation. */
 	public final void updateTranslationAnimation() {
 		if (target == null)
 			return;
@@ -457,14 +469,23 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		setPosition(newX, newY);
 	}
 	
-	/* @return the x-Coordinate of the center of the SwipeTile. */
+	/** @return the x-Coordinate of the center of the SwipeTile. */
 	public final float x() {
 		return center.x;
 	}
 	
-	/* @return the y-Coordinate of the center of the SwipeTile. */
+	/** @return the y-Coordinate of the center of the SwipeTile. */
 	public final float y() {
 		return center.y;
+	}
+	
+	/** @return the rotation of the SwipeTile in degrees. */
+	public final float rotation() {
+		// Throw an exception if we encounter unexpected behavior in STRICT mode.
+		if (game.IS_STRICT && tile.rotation() != arrow.rotation())
+			throw new RuntimeException("Tile's rotation != arrow's rotation!");
+		
+		return this.tile.rotation();
 	}
 	
 	/**
@@ -474,13 +495,13 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return new Vector2(tile.width() / originalTileSize.x, tile.height() / originalTileSize.y);
 	}
 	
-	/* @return the time the SwipeTile's arrow should remain green before
+	/** @return the time the SwipeTile's arrow should remain green before
 	 * triggering the onCorrectSwipe() event. */
 	public final float arrowGreenTime() {
 		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
 	}
 	
-	/* Refresh the SwipeTile's arrow's Texture. */
+	/** Refresh the SwipeTile's arrow's Texture. */
 	protected void refreshArrow() {
 		if (this.isCorrectlySwiped())
 			arrow.setTexture(arrowGreen);
@@ -488,35 +509,35 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 			arrow.setTexture(arrowGray);
 	}
 	
-	/* Set the State of the SwipeTile. */
+	/** Set the State of the SwipeTile. */
 	protected void setState(TileState newState) {
 		this.tileState = newState;
 		refreshArrow();
 	}
 	
-	/* @return the State of the SwipeTile. */
+	/** @return the State of the SwipeTile. */
 	protected TileState tileState() {
 		return this.tileState;
 	}
 	
-	/* @return the Rectangle that surrounds the SwipeTile. */
+	/** @return the Rectangle that surrounds the SwipeTile. */
 	protected Rectangle boundingBox() {
 		return new Rectangle(bottomLeft().x, bottomLeft().y, tile.width(), tile.height());
 	}
 	
-	/* @return the bottom left corner of the SwipeTile. */
+	/** @return the bottom left corner of the SwipeTile. */
 	protected Vector2 bottomLeft() {
 		return new Vector2(this.x() - tile.width()/2, this.y() - tile.height()/2);
 	}
 	
-	/*
+	/**
 	 * @return the top right corner of the SwipeTile.
 	 */
 	protected Vector2 topRight() {
 		return new Vector2(this.x() + tile.width()/2, this.y() + tile.height()/2);
 	}
 	
-	/* @return the stage of the lifecycle that the SwipeTile should use if it is in
+	/** @return the stage of the lifecycle that the SwipeTile should use if it is in
 	 * its normal lifecycle. */
 	protected int lifecycleStage() {
 		// Define the stage the Tile should be at.
@@ -527,7 +548,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return (int) (cappedStage);
 	}
 	
-	/*
+	/**
 	 * @return the time since the construction of StartButton.
 	 */
 	protected final float deltaTime() {
@@ -535,24 +556,24 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return (System.nanoTime() - startTime) * 1E-6f;
 	}
 	
-	/* @return the time when the SwipeTile will expire. */
+	/** @return the time when the SwipeTile will expire. */
 	protected final float expirationTime() {
 		return startTime + timeToSwipe;
 	}
 	
-	/* @return the time until the SwipeTile expires. */
+	/** @return the time until the SwipeTile expires. */
 	protected final float timeUntilExpiration() {
 		return expirationTime() - deltaTime();
 	}
 	
-	/*
+	/**
 	 * @return a new Vector2 constructed with the input's x and y screen coordinates.
 	 */
 	protected final Vector2 positionOf(InputProxy input, int touchID) {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
 	}
 	
-	/*
+	/**
 	 * @return a normalized Vector2 that represents a swipe with a magnitude of
 	 * 'magnitude' and direction of either up, left, right, or down.
 	 */
@@ -587,7 +608,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 			throw new RuntimeException("Error in SwipeTile.getArrow : Unknown direction " + direction);
 	}
 	
-	/* @return a random Direction object. */
+	/** @return a random Direction object. */
 	public static Direction randomDirection() {
 		int i = new Random().nextInt(5);
 		
@@ -604,12 +625,12 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	@Override
 	public void recieveEvent(SwipeTile tile, Event event) { }
 	
-	/* @return the default SwipeTile volume. */
+	/** @return the default SwipeTile volume. */
 	public static float defaultVolume() {
 		return defaultVolume;
 	}
 	
-	/* Set the default SwipeTile volume to the specified value. */
+	/** Set the default SwipeTile volume to the specified value. */
 	public static void setDefaultVolume(float newDefault) {
 		defaultVolume = newDefault;
 	}

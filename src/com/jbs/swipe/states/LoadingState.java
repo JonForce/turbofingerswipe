@@ -69,35 +69,35 @@ public class LoadingState implements ApplicationState {
 		}
 	}
 	
-	/*
+	/**
 	 * @return the percentage of loading completion in decimal form.
 	 */
 	public float percentComplete() {
 		return assetManager.getProgress();
 	}
 	
-	/*
+	/**
 	 * @return the LoadingState's assetManager.
 	 */
 	public AssetManager assetManager() {
 		return assetManager;
 	}
 	
-	/*
+	/**
 	 * Set the AssetManager to use.
 	 */
 	public void setAssetManager(AssetManager assetManager) {
 		this.assetManager = assetManager;
 	}
 	
-	/*
+	/**
 	 * Set the state to enter when loading is complete.
 	 */
 	public void setExitState(ApplicationState newExitState) {
 		this.exitState = newExitState;
 	}
 	
-	/*
+	/**
 	 * If the resource is a texture, add it to the LoadingState's AssetManager's
 	 * loading queue. If it is a directory, add all textures within all of the
 	 * child directories to the LoadingState's AssetManager's loading queue.

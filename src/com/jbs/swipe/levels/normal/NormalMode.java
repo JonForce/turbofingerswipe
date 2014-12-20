@@ -3,23 +3,22 @@ package com.jbs.swipe.levels.normal;
 import java.util.ArrayList;
 
 import aurelienribon.tweenengine.BaseTween;
-import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
-import aurelienribon.tweenengine.equations.Linear;
-import aurelienribon.tweenengine.equations.Quad;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
-import com.jbs.swipe.Animator;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
 import com.jbs.swipe.tiles.SwipeListener;
 import com.jbs.swipe.tiles.SwipeTile;
-import com.jbs.swipe.tiles.TileAccessor;
+import com.jbs.swipe.traps.Bomb;
 
 public final class NormalMode extends LevelState implements SwipeListener {
 	
@@ -34,6 +33,8 @@ public final class NormalMode extends LevelState implements SwipeListener {
 	private int
 		stackSize = 5,
 		tileOffset = 20;
+	
+	private Bomb bomb;
 	
 	public NormalMode(Game game) {
 		super(game);
@@ -93,6 +94,14 @@ public final class NormalMode extends LevelState implements SwipeListener {
 		// Iterate inversely.
 		for (int i = tiles.size() - 1; i != -1; i --)
 			tiles.get(i).updateWith(input);
+		
+		bomb.updateWith(input);
+		if (Gdx.input.isButtonPressed(Buttons.RIGHT) && bomb.stock() >= 50) {
+			bomb.reset();
+			bomb.useTrapOn(tiles());
+			bomb.setStock(0);
+		}
+		bomb.increaseStockBy(1);
 	}
 	
 	@Override
@@ -101,6 +110,22 @@ public final class NormalMode extends LevelState implements SwipeListener {
 		renderables = new ArrayList<Renderable>();
 		
 		createStackOfSize(stackSize);
+		
+		bomb = new Bomb(game()) {
+			@Override
+			public void reset() {
+				super.reset();
+				this.setPosition(0, game().screenHeight()/4f);
+			}
+		};
+		bomb.setStock(50);
+	}
+	
+	@Override
+	public SwipeTile[] tiles() {
+		SwipeTile[] tilesArray = new SwipeTile[tiles.size()];
+		tiles.toArray(tilesArray);
+		return tilesArray;
 	}
 	
 	@Override
