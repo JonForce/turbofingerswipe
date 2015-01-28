@@ -32,7 +32,7 @@ public class Font {
 	}
 	
 	/* Set the default rendering position of the Font to (x, y). */
-	public void setPosition(int x, int y) {
+	public void setPosition(float x, float y) {
 		// Initialize the position if it has not yet been.
 		if (position == null)
 			position = new Vector2();
@@ -40,7 +40,7 @@ public class Font {
 		position.set(x, y);
 	}
 	
-	public void translate(int x, int y) {
+	public void translate(float x, float y) {
 		position.add(x, y);
 	}
 	
@@ -62,21 +62,21 @@ public class Font {
 	}
 	
 	/* @return the width of each rendered digit. */
-	public int digitWidth() {
-		return (int) (sourceDigitWidth * scale());
+	public float digitWidth() {
+		return sourceDigitWidth * scale();
 	}
 	
 	/* @return the height of each rendered digit. */
-	public int digitHeight() {
-		return (int) (sourceDigitHeight * scale());
+	public float digitHeight() {
+		return sourceDigitHeight * scale();
 	}
 	
-	public void renderDigitTo(SpriteBatch batch, int digit, int x, int y) {
+	public void renderDigitTo(SpriteBatch batch, int digit, float x, float y) {
 		assertIntegerIsDigit(digit);
 		batch.draw(getDigitTexture(digit), x, y, digitWidth(), digitHeight());
 	}
 	
-	public void renderIntegerTo(SpriteBatch batch, int integer, int x, int y) {
+	public void renderIntegerTo(SpriteBatch batch, int integer, float x, float y) {
 		String integerString = integer + "";
 		
 		int numberOfDigits = integerString.length() + 1;

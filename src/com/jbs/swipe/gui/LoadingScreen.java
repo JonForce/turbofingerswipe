@@ -48,26 +48,26 @@ public abstract class LoadingScreen implements Renderable {
 		fullBar = new Graphic(center, new Texture(FULL_BAR_SOURCE)) {
 			// Override the width of the Graphic to be relative to the percent completeness of the loading process.
 			@Override
-			public int width() {
-				return (int)(super.width() * percentComplete());
+			public float width() {
+				return super.width() * percentComplete();
 			}
 			
 			// Override the x position of the center of the Graphic to keep the full bar expanding from left to right.
 			@Override
-			public int x() {
+			public float x() {
 				float sourceWidth = texture().getWidth();
 				float offset = percentComplete() * (sourceWidth/2);
-				return (int) (center.x + offset - sourceWidth/2);
+				return center.x + offset - sourceWidth/2;
 			}
 		};
 		
 		// Create the finger that swipes the loading bar.
 		finger = new Graphic(center, new Texture(FINGER_SOURCE)) {
 			@Override
-			public int x() {
+			public float x() {
 				float sourceWidth = fullBar.texture().getWidth();
 				float offset = percentComplete() * sourceWidth;
-				return (int)(center.x + offset - sourceWidth/2);
+				return center.x + offset - sourceWidth/2;
 			}
 		};
 		

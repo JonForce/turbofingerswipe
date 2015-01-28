@@ -267,12 +267,12 @@ public class ArcadeTutorialState extends TutorialState {
 		gotItButton = new Button(new Vector2(0,0), game.getTexture(GOT_IT_UNPRESSED_SOURCE), game.getTexture(GOT_IT_PRESSED_SOURCE)) {
 			// Override the position of the Button's center to be relative to the current-tip window.
 			@Override
-			public int x() {
+			public float x() {
 				// The Center-x of the Button should be at the center of the current-tip's window.
 				return currentTip().x() - texture().getHeight()/2;
 			}
 			@Override
-			public int y() {
+			public float y() {
 				// The Center-y of the Button should be at the,
 				return
 						currentTip().y() - currentTip().height()/2 // Bottom of the Current-tip's window,

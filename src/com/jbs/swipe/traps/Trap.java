@@ -2,7 +2,6 @@ package com.jbs.swipe.traps;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.jbs.swipe.Game;
-import com.jbs.swipe.tiles.SwipeTile;
 
 public abstract class Trap<Target> {
 	
@@ -44,12 +43,22 @@ public abstract class Trap<Target> {
 	
 	/** Set the number of Traps available to use to newStock. */
 	public final void setStock(int newStock) {
-		game.preferences().putInteger(trapName() + ":stock", newStock);
+		game.user().setStock(this, newStock);
 	}
 	
 	/** @return the number of Traps available to used. */
 	public final int stock() {
-		return game.preferences().getInteger(trapName() + ":stock");
+		return game.user().stockOf(this);
+	}
+	
+	/** @return the default Texture based on the Trap's name. */
+	public final Texture texture() {
+		return game.getTexture("assets/Traps/" + trapName() + ".png");
+	}
+	
+	/** @return the Trap's desired icon. */
+	public Texture icon() {
+		return texture();
 	}
 	
 	/** @return the Objects that can potentially be affected by the Trap. */
@@ -57,7 +66,11 @@ public abstract class Trap<Target> {
 		return this.targets;
 	}
 	
-	public abstract Texture icon();
+	/** @return the name of the Trap. This should remain constant. */
+	public abstract String trapName();
+	/** @return the cost of the Trap in JBS coins. */
+	public abstract int cost();
+	/** @return the number of Traps to get per purchase. */
+	public abstract int trapsPerPurchase();
 	protected abstract void activate();
-	protected abstract String trapName();
 }

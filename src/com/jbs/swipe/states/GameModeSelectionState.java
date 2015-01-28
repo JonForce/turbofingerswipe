@@ -158,16 +158,16 @@ public final class GameModeSelectionState implements ApplicationState {
 		};
 		
 		advancedText = new Graphic(offscreen.cpy(), game.getTexture(ADVANCED_TEXT)) {
-			public int x() { return advancedButton.x(); }
-			public int y() { return advancedButton.y(); }
+			public float x() { return advancedButton.x(); }
+			public float y() { return advancedButton.y(); }
 		};
 		normalText = new Graphic(offscreen.cpy(), game.getTexture(NORMAL_TEXT)) {
-			public int x() { return normalButton.x(); }
-			public int y() { return normalButton.y(); }
+			public float x() { return normalButton.x(); }
+			public float y() { return normalButton.y(); }
 		};
 		puzzleText = new Graphic(offscreen.cpy(), game.getTexture(PUZZLE_TEXT)) {
-			public int x() { return puzzleButton.x(); }
-			public int y() { return puzzleButton.y(); }
+			public float x() { return puzzleButton.x(); }
+			public float y() { return puzzleButton.y(); }
 		};
 		
 		new Animator(game)
@@ -189,8 +189,8 @@ public final class GameModeSelectionState implements ApplicationState {
 	 * @return The width of the average Button and it's text.
 	 */
 	private float buttonWidth() {
-		final int
-			textWidth = (normalButton.width() - normalText.width());
+		final float
+			textWidth = normalButton.width() - normalText.width();
 		
 		return normalButton.width() + textWidth*2;
 	}

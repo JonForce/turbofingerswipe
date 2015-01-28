@@ -3,32 +3,21 @@ package com.jbs.swipe.traps;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
-import aurelienribon.tweenengine.TweenPaths;
-import aurelienribon.tweenengine.equations.Quad;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
-import com.jbs.swipe.Callback;
 import com.jbs.swipe.Game;
-import com.jbs.swipe.Vector2Accessor;
 import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.effects.Explosion;
 import com.jbs.swipe.effects.SmallFlame;
-import com.jbs.swipe.levels.arcade.ArcadeMode;
 import com.jbs.swipe.tiles.SwipeListener.Event;
 import com.jbs.swipe.tiles.SwipeTile;
 
 public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
-	
-	private final FileHandle
-		ICON_IDLE = Gdx.files.internal("assets/Traps/TNT_IDLE.png"),
-		ICON_ACTIVE = Gdx.files.internal("assets/Traps/TNT_ACTIVE.png");
 	
 	private final Vector2
 		// The position of the Bomb.
@@ -118,11 +107,6 @@ public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 		return state instanceof GrabbedState;
 	}
 	
-	/** @return the Bomb's icon. */
-	public final Texture icon() {
-		return this.texture();
-	}
-	
 	@Override
 	protected void activate() {
 		if (!Gdx.input.isTouched())
@@ -168,13 +152,19 @@ public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 		}
 	}
 	
-	protected Texture texture() {
-		return game.getTexture(ICON_IDLE);
+	@Override
+	public String trapName() {
+		return "Bomb";
 	}
 	
 	@Override
-	protected String trapName() {
-		return "Bomb";
+	public int cost() {
+		return 1500;
+	}
+	
+	@Override
+	public int trapsPerPurchase() {
+		return 5;
 	}
 }
 

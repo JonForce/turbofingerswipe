@@ -60,7 +60,7 @@ public class Animator {
 	 * @param direction The direction to slide the Graphics.
 	 * @param graphics The Graphics to be animated.
 	 */
-	public Animator slideGraphicsOffscreen(float time, int timeVariation, Direction direction, Graphic... graphics) {
+	public Animator slideGraphicsOffscreen(float time, int timeVariation, Direction direction, Graphic[] graphics) {
 		for (Graphic graphic : graphics)
 			slideGraphicOffscreen(time - (timeVariation/2) + game.random().nextInt(timeVariation), direction, graphic);
 		return this;

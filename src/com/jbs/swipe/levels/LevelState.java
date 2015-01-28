@@ -12,6 +12,7 @@ import com.jbs.swipe.gui.Score;
 import com.jbs.swipe.gui.buttons.MuteButton;
 import com.jbs.swipe.gui.buttons.PauseButton;
 import com.jbs.swipe.states.GameOverState;
+import com.jbs.swipe.states.OverlayState;
 import com.jbs.swipe.states.PausedState;
 import com.jbs.swipe.tiles.SwipeTile;
 
@@ -30,7 +31,7 @@ public abstract class LevelState implements ApplicationState {
 	/** The State to enter when the Level is failed. */
 	private GameOverState gameOverState;
 	/** The State to enter when the Level is paused. */
-	private PausedState pausedState;
+	private OverlayState pausedState;
 	
 	private boolean
 		/** True when the Tutorial has shown. */
@@ -54,7 +55,7 @@ public abstract class LevelState implements ApplicationState {
 		
 		// If the tutorial has not shown yet,
 		// and the user has not opted out of seeing this Level's tutorials,
-		if (!tutorialHasShown && !game.preferences().getBoolean(levelName() + ":hasOptedOutOfTutorial")) {
+		if (!tutorialHasShown && !game.settings().hasOptedOutOfTutorial()) {
 			game.setState(tutorialState);
 			tutorialHasShown = true;
 			// Return without initializing.
@@ -95,6 +96,7 @@ public abstract class LevelState implements ApplicationState {
 		
 		// Initialize abstract components.
 		create();
+		initialized = true;
 	}
 	
 	/** Reset the Level to its initial state, then start it. */
@@ -156,7 +158,7 @@ public abstract class LevelState implements ApplicationState {
 	
 	/** Set the highscore of the Level to the specified value. */
 	protected final void setHighscore(int newHighscore) {
-		game.preferences().putInteger(levelName() + ":Highscore", newHighscore);
+		game.user().setHighScore(newHighscore);
 	}
 	
 	/** @return all the SwipeTiles in the Level. */
@@ -181,7 +183,7 @@ public abstract class LevelState implements ApplicationState {
 	
 	/** @return the Level's highscore. */
 	private int highscore() {
-		return game.preferences().getInteger(levelName() + ":Highscore");
+		return game.user().highScore();
 	}
 	
 	/** Create and @return the State to enter when the Level is failed. */
@@ -194,13 +196,13 @@ public abstract class LevelState implements ApplicationState {
 			
 			@Override
 			public int highestScore() {
-				return game.preferences().getInteger(levelName() + ":Highscore");
+				return highscore();
 			}
 		};
 	}
 	
 	/** Create and @return the State to enter when the Level is paused. */
-	private PausedState createPausedState() {
+	private OverlayState createPausedState() {
 		return new PausedState(game, this);
 	}
 	

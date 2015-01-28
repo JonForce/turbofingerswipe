@@ -122,10 +122,10 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		initializeControllers();
 		initializeDifficulty();
 		
-		bombSpawner = new BombSpawner(game(), new Vector2(150, 70));
+		bombSpawner = new BombSpawner(game(), 1);
 		bombSpawner.setStock(10);
 		
-		darkHoleSpawner = new DarkHoleSpawner(game(), new Vector2(550, 100));
+		darkHoleSpawner = new DarkHoleSpawner(game(), 2);
 		darkHoleSpawner.setStock(10);
 	}
 	
@@ -245,7 +245,6 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		// Initialize the top Row above the center Row.
 		rows[2] = new Row(game(), game().screenCenter().add(0, rows[1].height()), initialTilesPerRow());
 		
-		
 		// Only the center Row is visible by default.
 		centerRow().setVisible(true);
 		// Other Rows must be revealed.
@@ -256,6 +255,7 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 			row.setSwipeListener(this);
 			row.setTouchManager(touchManager());
 			row.setPattern(new Pattern<Direction>(DEFAULT_PATTERN_LENGTH, Direction.RIGHT, Direction.UP, Direction.LEFT, Direction.DOWN));
+			row.scramblePattern();
 		}
 	}
 	

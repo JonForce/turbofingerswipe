@@ -4,18 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
 
-public class BombSpawner extends TrapSpawner implements Renderable, Updatable {
+public class BombSpawner extends TrapSpawner {
 	
 	protected final ArrayList<Bomb> bombs;
 	
-	public BombSpawner(Game game, Vector2 center) {
-		super(game, center, new Bomb(game));
+	public BombSpawner(Game game, int position) {
+		super(game, position, new Bomb(game));
 		this.bombs = new ArrayList<Bomb>(10);
 	}
 	

@@ -102,6 +102,12 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		this.pattern = newPattern;
 	}
 	
+	/** Randomize the Row's spawning pattern. */
+	public void scramblePattern() {
+		while (pattern.next().equals(pattern.next()))
+			pattern.scramble(game.random());
+	}
+	
 	/** Set the direction for the Row to move in when expanding and collapsing. */
 	public void setDirection(int newDirection) {
 		final String errorMessage = "Error in setDirection("+newDirection+") : ";

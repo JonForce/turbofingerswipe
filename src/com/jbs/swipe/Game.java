@@ -6,7 +6,6 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
@@ -18,27 +17,42 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.shop.DefaultBillingAPI;
+import com.jbs.swipe.shop.HugeCoinPurchase;
+import com.jbs.swipe.shop.LargeCoinPurchase;
+import com.jbs.swipe.shop.BillingAPI;
+import com.jbs.swipe.shop.ShopState;
+import com.jbs.swipe.shop.SmallCoinPurchase;
+import com.jbs.swipe.shop.TinyCoinPurchase;
+import com.jbs.swipe.shop.TrapPurchase;
 import com.jbs.swipe.states.GameModeSelectionState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
+import com.jbs.swipe.traps.Bomb;
+import com.jbs.swipe.traps.DarkHole;
 
 public class Game extends Application {
 	
-	public final boolean IS_STRICT = true;
-	public final String PREFERENCES_NAME = "Prefs";
+	public final boolean IS_STRICT = false;
 	
 	private FileHandle
 		PATH_TO_ASSETS,
 		BACKGROUND_MUSIC_SOURCE;
 	
 	protected AssetManager assetManager;
-	protected Preferences preferences;
 	protected AudioProxy audioProxy;
 	protected Random random;
 	
+	/** The utility for easily creating and updating animations. */
 	private TweenManager tweenManager;
+	/** The interface for saving User data. */
+	private User user;
+	/** The interface for saving Game settings. */
+	private Settings settings;
+	/** The interface to charge the User money. */
+	private BillingAPI billingAPI;
 	
 	private Renderable background;
 	
@@ -46,15 +60,22 @@ public class Game extends Application {
 	private MainMenuState mainMenuState;
 	private GameModeSelectionState gameModeSelectionState;
 	private LevelState levelState;
+	private ShopState shopState;
 	
-	private long lastRenderTime;
+	private long
+		lastRenderTime;
 	private boolean
 		created = false; // True when the Game's resources have been initialized.
 	
-	public Game(int virtualWidth, int virtualHeight) {
+	public Game(BillingAPI billingAPI, int virtualWidth, int virtualHeight) {
 		super(virtualWidth, virtualHeight);
+		this.billingAPI = billingAPI;
 		if (IS_STRICT)
 			System.out.println("Warning! Game IS_STRICT");
+	}
+	
+	public Game(int virtualWidth, int virtualHeight) {
+		this(new DefaultBillingAPI(), virtualWidth, virtualHeight);
 	}
 	
 	/** Reset the Game to it's MainMenuState. Throws RuntimeException if the Game
@@ -93,13 +114,9 @@ public class Game extends Application {
 		return (Texture) assetManager.get(textureSource.path());
 	}
 	
+	/** @return the Texture if it has been loaded from the Game's assets folder. */
 	public final Texture getTexture(String fileLocation) {
 		return getTexture(Gdx.files.internal(fileLocation));
-	}
-	
-	/** @return the Game's Preferences. */
-	public final Preferences preferences() {
-		return preferences;
 	}
 	
 	/** @return the Game's AudioProxy. This is the interface for using the Game's loaded Audio. */
@@ -140,10 +157,12 @@ public class Game extends Application {
 	@Override
 	public final void dispose() {
 		// Save the Audio's muted-ness.
-		preferences.putBoolean("is_muted", audio().isMuted());
+		settings.setMuted(audio().isMuted());
 		
-		// Flush the preferences to save any new saved data.
-		preferences.flush();
+		settings().save();
+		user().save();
+		
+		billingAPI.destroy();
 	}
 	
 	@Override
@@ -159,6 +178,9 @@ public class Game extends Application {
 	public final void create() {
 		super.create();
 		
+		if (created)
+			throw new RuntimeException("Game already created!?");
+		
 		initializeFileHandles();
 		initializeAssets();
 		initializeStates();
@@ -171,6 +193,13 @@ public class Game extends Application {
 		lastRenderTime = System.currentTimeMillis();
 	}
 	
+	public final void openShop() {
+		if (this.applicationState() instanceof ShopState)
+			throw new RuntimeException("Already in ShopState!");
+		
+		setState(shopState());
+	}
+	
 	public final void setLevelState(LevelState newLevelState) {
 		this.levelState = newLevelState;
 	}
@@ -178,6 +207,16 @@ public class Game extends Application {
 	/** @return the Object that handles all the Game's Tweens. */
 	public final TweenManager tweenManager() {
 		return this.tweenManager;
+	}
+	
+	/** @return the interface for saving User data. */
+	public final User user() {
+		return this.user;
+	}
+	
+	/* @return the interface for Game settings. */
+	public final Settings settings() {
+		return this.settings;
 	}
 	
 	/** @return true if the Game's .create() method has been called. */
@@ -218,12 +257,6 @@ public class Game extends Application {
 		return background;
 	}
 	
-	/** Set the new high-score to newHighScore. */
-	protected void setHighScore(int newHighScore) {
-		// Save the new high-score to our preferences.
-		preferences.putInteger("high_score", newHighScore);
-	}
-	
 	/** Initialize the Game's FileHandles. */
 	protected void initializeFileHandles() {
 		PATH_TO_ASSETS = Gdx.files.internal("assets");
@@ -241,18 +274,20 @@ public class Game extends Application {
 		// Create the Game's AudioProxy.
 		audioProxy = new AudioProxy(assetManager, this.IS_STRICT);
 		
-		// Create our Game's preferences.
-		preferences = Gdx.app.getPreferences(PREFERENCES_NAME);
-		
-		// Mute the Audio if it was muted the last time the Game exited.
-		if (preferences.getBoolean("is_muted"))
-			audio().mute();
-		
 		tweenManager = new TweenManager();
+		// Register all the accessors with their respective classes.
 		Tween.registerAccessor(Graphic.class, new GraphicAccessor());
 		Tween.registerAccessor(SwipeTile.class, new TileAccessor());
 		Tween.registerAccessor(Vector2.class, new Vector2Accessor());
 		Tween.setWaypointsLimit(2);
+		
+		final int DEFAULT_USER_ID = 0;
+		user = new User(DEFAULT_USER_ID);
+		settings = new Settings();
+		
+		// Mute the Audio if it was muted the last time the Game exited.
+		if (settings.isMuted())
+			audio().mute();
 	}
 	
 	/** Initialize the Game's ApplicationStates. */
@@ -298,5 +333,23 @@ public class Game extends Application {
 			loadingState = new LoadingState(this, assetManager, PATH_TO_ASSETS);
 		
 		return loadingState;
+	}
+	
+	/** Create the Game's ShopState if it has not yet been created and return it. */
+	protected ShopState shopState() {
+		// If our Game's ShopState has not yet been created,
+		if (this.shopState == null) {
+			// Create our game's shop state.
+			shopState = new ShopState(this, billingAPI, mainMenuState());
+			
+			shopState.addPurchase(new HugeCoinPurchase(this, billingAPI));
+			shopState.addPurchase(new LargeCoinPurchase(this, billingAPI));
+			shopState.addPurchase(new SmallCoinPurchase(this, billingAPI));
+			shopState.addPurchase(new TinyCoinPurchase(this, billingAPI));
+			shopState.addPurchase(new TrapPurchase(new Bomb(this)));
+			shopState.addPurchase(new TrapPurchase(new DarkHole(this)));
+		}
+		
+		return shopState;
 	}
 }

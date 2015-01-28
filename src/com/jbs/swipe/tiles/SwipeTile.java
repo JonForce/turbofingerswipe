@@ -95,12 +95,12 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 			
 			// The center of the tile Graphic is the center of the SwipeTile.
 			@Override
-			public int x() {
-				return (int) swipeTile.x();
+			public float x() {
+				return swipeTile.x();
 			}
 			@Override
-			public int y() {
-				return (int) swipeTile.y();
+			public float y() {
+				return swipeTile.y();
 			}
 			@Override
 			public Texture texture() {
@@ -131,12 +131,12 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.arrow = new Graphic(new Vector2(x(), y()), arrowGray) {
 			// The center of the arrow is the center of the SwipeTile.
 			@Override
-			public int x() {
-				return (int) swipeTile.x();
+			public float x() {
+				return swipeTile.x();
 			}
 			@Override
-			public int y() {
-				return (int) swipeTile.y();
+			public float y() {
+				return swipeTile.y();
 			}
 		};
 		
@@ -263,7 +263,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		
 	}
 	
-	/* Reset the SwipeTile to it's state when it was constructed (Excluding the volume). */
+	/** Reset the SwipeTile to it's state when it was constructed (Excluding the volume). */
 	public void reset() {
 		// Reset the SwipeTile's state data.
 		startTime = System.nanoTime();
@@ -274,7 +274,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		refreshArrow();
 	}
 	
-	/* Set the position to translate the SwipeTile to. */
+	/** Set the position to translate the SwipeTile to. */
 	public void setTranslationTarget(float targetX, float targetY, float damping) {
 		if (this.target == null)
 			target = new Vector2();
