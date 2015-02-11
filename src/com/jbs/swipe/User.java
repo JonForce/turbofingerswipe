@@ -1,24 +1,24 @@
 package com.jbs.swipe;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.jbs.swipe.traps.Trap;
 
 public class User {
 	
 	private static final String
-		PREFERENCES_NAME = "TurboFingerSwipeUserPreferences",
 		// User account properties :
 		COIN_COUNT = ":CoinCount",
 		HIGH_SCORE = ":HighScore",
 		TRAP_STOCK = ":TrapStock";
 	
 	private final int ID;
+	private final Preferences preferences;
 	
 	/** Create an access point to save User data.
 	 * @param ID The User's unique ID. */
-	public User(int ID) {
+	public User(int ID, Preferences preferences) {
 		this.ID = ID;
+		this.preferences = preferences;
 	}
 	
 	/** @return the User's highest score. */
@@ -40,16 +40,19 @@ public class User {
 	/** Set the User's stock of the specified Trap. */
 	public void setStock(Trap<?> trap, int newStock) {
 		preferences().putInteger(username() + TRAP_STOCK + ":" + trap.trapName(), newStock);
+		save();
 	}
 	
 	/** Set the User's High Score. */
 	public void setHighScore(int newScore) {
 		preferences().putInteger(username() + HIGH_SCORE, newScore);
+		save();
 	}
 	
 	/** Set the number of coins that User has. */
 	public void setCoinCount(int newCount) {
 		preferences().putInteger(username() + COIN_COUNT, newCount);
+		save();
 	}
 	
 	/** Add n number of coins to the User's account. */
@@ -72,7 +75,7 @@ public class User {
 	
 	/** @return the Preferences that User data is saved to. */
 	protected Preferences preferences() {
-		return Gdx.app.getPreferences(PREFERENCES_NAME);
+		return preferences;
 	}
 	
 	/** @return the User's name, a unique string that can be used to store data to. */

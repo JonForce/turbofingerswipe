@@ -1,6 +1,5 @@
 package com.jbs.swipe;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 
 public class Settings {
@@ -9,15 +8,12 @@ public class Settings {
 		OPTED_OUT_OF_TUTORIAL = "OptedOutOfTutorial",
 		IS_MUTED = "IsMuted";
 	
-	protected final String fileName;
+	private final Preferences preferences;
 	
-	/** Create an interface for viewing and modifying the Game settings.
-	 * @param fileName The file to store the settings. */
-	public Settings(String fileName) {
-		this.fileName = fileName;
+	/** Create an interface for viewing and modifying the Game settings. */
+	public Settings(Preferences preferences) {
+		this.preferences = preferences;
 	}
-	/** Create an interface for viewing and modifying Game settings. Uses the default settings file. */
-	public Settings() { this("Settings"); }
 	
 	/** @return true if the User has opted out of hearing sounds.*/
 	public boolean isMuted() {
@@ -32,16 +28,19 @@ public class Settings {
 	/** Opt to not see the tutorial. */
 	public void optOutOfTutorial() {
 		preferences().putBoolean(OPTED_OUT_OF_TUTORIAL, true);
+		save();
 	}
 	
 	/** Opt to see the tutorial. */
 	public void optIntoTutorial() {
 		preferences().putBoolean(OPTED_OUT_OF_TUTORIAL, false);
+		save();
 	}
 	
 	/** Set whether or not the User wants to hear sounds. */
 	public void setMuted(boolean flag) {
 		preferences().putBoolean(IS_MUTED, flag);
+		save();
 	}
 	
 	/** Save the preferences to disk. */
@@ -51,6 +50,6 @@ public class Settings {
 	
 	/** @return the Preferences file to save settings to and read settings from. */
 	protected Preferences preferences() {
-		return Gdx.app.getPreferences(fileName);
+		return preferences;
 	}
 }

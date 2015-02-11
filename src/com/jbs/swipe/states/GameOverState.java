@@ -69,14 +69,17 @@ public abstract class GameOverState implements ApplicationState {
 	@Override
 	public void renderTo(SpriteBatch batch) {
 		level.renderTo(batch);
-		overlay.renderTo(batch);
-		window.renderTo(batch);
 		
-		renderCurrentScoreTo(batch, currentScoreCenter());
-		renderHighestScoreTo(batch, highestScoreCenter());
-		
-		homeButton.renderTo(batch);
-		restartButton.renderTo(batch);
+		game.beginIODChange(batch, 3);
+			overlay.renderTo(batch);
+			window.renderTo(batch);
+			
+			renderCurrentScoreTo(batch, currentScoreCenter());
+			renderHighestScoreTo(batch, highestScoreCenter());
+			
+			homeButton.renderTo(batch);
+			restartButton.renderTo(batch);
+		game.endIODChange(batch, 3);
 	}
 	
 	@Override

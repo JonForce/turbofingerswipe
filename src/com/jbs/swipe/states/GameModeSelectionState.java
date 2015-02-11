@@ -48,13 +48,15 @@ public final class GameModeSelectionState implements ApplicationState {
 	public void renderTo(SpriteBatch batch) {
 		game.background().renderTo(batch);
 		
-		advancedButton.renderTo(batch);
-		normalButton.renderTo(batch);
-		puzzleButton.renderTo(batch);
-		
-		advancedText.renderTo(batch);
-		normalText.renderTo(batch);
-		puzzleText.renderTo(batch);
+		game.beginIODChange(batch, 3);
+			advancedButton.renderTo(batch);
+			normalButton.renderTo(batch);
+			puzzleButton.renderTo(batch);
+			
+			advancedText.renderTo(batch);
+			normalText.renderTo(batch);
+			puzzleText.renderTo(batch);
+		game.endIODChange(batch, 3);
 	}
 	
 	@Override

@@ -58,9 +58,15 @@ public abstract class MainMenuState implements ApplicationState {
 	@Override
 	public void renderTo(SpriteBatch batch) {
 		background.renderTo(batch);
-		startButton.renderTo(batch);
-		shopButton.renderTo(batch);
-		title.renderTo(batch);
+		
+		game.beginIODChange(batch, 3f);
+			startButton.renderTo(batch);
+			shopButton.renderTo(batch);
+		game.endIODChange(batch, 3f);
+		
+		game.beginIODChange(batch, 5f);
+			title.renderTo(batch);
+		game.endIODChange(batch, 5f);
 	}
 	
 	@Override

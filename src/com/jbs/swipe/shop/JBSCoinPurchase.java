@@ -16,15 +16,22 @@ public abstract class JBSCoinPurchase implements Purchase {
 		this.coins = coins;
 	}
 	
-	@Override
-	public void giveItemsTo(User user) {
+	public void giveCoinsTo(User user) {
 		user.addCoins(coins);
 	}
 	
 	@Override
-	public boolean retrievePayment(User user) {
-		billingAPI.requestPurchase(sku());
-		return false;
+	public void attemptPurchase(final User user) {
+		billingAPI.requestPurchase(sku(), new BillingCallback() {
+			@Override
+			public void callback(boolean purchaseSuccess) {
+				System.out.println("BillingCallback : " + purchaseSuccess);
+				// If the User paid us,
+				if (purchaseSuccess)
+					// Give him the coins.
+					giveCoinsTo(user);
+			}
+		});
 	}
 	
 	@Override

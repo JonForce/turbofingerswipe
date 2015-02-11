@@ -12,32 +12,31 @@ public class TrapPurchase implements Purchase {
 		this.trap = trap;
 	}
 	
-	@Override
-	public void giveItemsTo(User user) {
+	public void giveTrapsTo(User user) {
 		trap.increaseStockBy(trap.trapsPerPurchase());
 	}
-
+	
 	@Override
-	public boolean retrievePayment(User user) {
+	public void attemptPurchase(User user) {
 		if (user.jbsCoins() < trap.cost())
 			// User is too damn poor to afford the Trap.
-			return false;
+			return;
 		else
 			user.removeCoins(trap.cost());
-		// Payment was successful.
-		return true;
+		// Payment was successful. Give the user the items.
+		giveTrapsTo(user);
 	}
-
+	
 	@Override
 	public Texture icon() {
 		return trap.icon();
 	}
-
+	
 	@Override
 	public String name() {
 		return trap.trapName();
 	}
-
+	
 	@Override
 	public int itemCount() {
 		return trap.trapsPerPurchase();

@@ -20,6 +20,6 @@ public class TinyCoinPurchase extends JBSCoinPurchase {
 
 	@Override
 	protected String sku() {
-		return "tiny_coin_purchase.2li2h77nnczxuhh";
+		return "android.test.purchased";
 	}
 }

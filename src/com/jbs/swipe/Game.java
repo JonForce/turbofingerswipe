@@ -6,12 +6,14 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
+import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.io.AudioProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
@@ -61,6 +63,9 @@ public class Game extends Application {
 	private GameModeSelectionState gameModeSelectionState;
 	private LevelState levelState;
 	private ShopState shopState;
+	
+	/** The state to return to when the Game is resumed. */
+	private ApplicationState returnState;
 	
 	private long
 		lastRenderTime;
@@ -137,6 +142,9 @@ public class Game extends Application {
 				this.isCreated()) // And the Game is Created,
 			// Pause the Level.
 			levelState().pause();
+		
+		// Set the state that the Game will return to when resumed.
+		returnState = this.applicationState();
 	}
 	
 	/** Start the Level and play the Game's background music.
@@ -148,10 +156,7 @@ public class Game extends Application {
 			// Resume the background music.
 			playBackgroundMusic(true); // True because the background Music should be looped.
 		
-		// If there is a Level to resume,
-		if (levelState() != null)
-			// Resume the Level.
-			setState(levelState());
+		setState(returnState);
 	}
 	
 	@Override
@@ -175,7 +180,7 @@ public class Game extends Application {
 	}
 	
 	@Override
-	public final void create() {
+	public void create() {
 		super.create();
 		
 		if (created)
@@ -191,6 +196,14 @@ public class Game extends Application {
 		// Mark the Game as created.
 		created = true;
 		lastRenderTime = System.currentTimeMillis();
+	}
+	
+	public void beginIODChange(SpriteBatch batch, float deltaIOD) {
+		
+	}
+	
+	public void endIODChange(SpriteBatch batch, float deltaIOD) {
+		
 	}
 	
 	public final void openShop() {
@@ -265,6 +278,8 @@ public class Game extends Application {
 	
 	/** Initialize the Game's AssetManager. */
 	protected void initializeAssets() {
+		
+		
 		// Create our psuedo-random number generator.
 		random = new Random();
 		
@@ -282,8 +297,9 @@ public class Game extends Application {
 		Tween.setWaypointsLimit(2);
 		
 		final int DEFAULT_USER_ID = 0;
-		user = new User(DEFAULT_USER_ID);
-		settings = new Settings();
+		final Preferences prefs = Gdx.app.getPreferences("prefs");
+		user = new User(DEFAULT_USER_ID, prefs);
+		settings = new Settings(prefs);
 		
 		// Mute the Audio if it was muted the last time the Game exited.
 		if (settings.isMuted())
@@ -348,6 +364,8 @@ public class Game extends Application {
 			shopState.addPurchase(new TinyCoinPurchase(this, billingAPI));
 			shopState.addPurchase(new TrapPurchase(new Bomb(this)));
 			shopState.addPurchase(new TrapPurchase(new DarkHole(this)));
+			
+			user.addCoins(100);
 		}
 		
 		return shopState;

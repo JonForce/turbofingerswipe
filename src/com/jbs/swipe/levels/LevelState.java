@@ -76,11 +76,15 @@ public abstract class LevelState implements ApplicationState {
 	public final void renderTo(SpriteBatch batch) {
 		game.background().renderTo(batch);
 		
-		muteButton.renderTo(batch);
-		pauseButton.renderTo(batch);
-		score.renderTo(batch);
+		game.beginIODChange(batch, 2);
+			muteButton.renderTo(batch);
+			pauseButton.renderTo(batch);
+			score.renderTo(batch);
+		game.endIODChange(batch, 2);
 		
-		renderLevelTo(batch);
+		game.beginIODChange(batch, 4);
+			renderLevelTo(batch);
+		game.endIODChange(batch, 4);
 	}
 	
 	/** Initialize the Level's base components. */

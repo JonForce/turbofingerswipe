@@ -42,12 +42,7 @@ public class ItemWindow implements Updatable, Renderable {
 			@Override
 			public void onRelease() {
 				System.out.println("Attempting to purchase " + purchase.name());
-				if (purchase.retrievePayment(game.user())) {
-					purchase.giveItemsTo(game.user());
-					System.out.println("Payment recieved, awarding items.");
-				} else {
-					System.out.println("Payment not recieved, purchase failed :(");
-				}
+				purchase.attemptPurchase(game.user());
 			}
 		};
 		

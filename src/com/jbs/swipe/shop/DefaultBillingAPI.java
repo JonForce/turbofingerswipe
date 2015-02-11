@@ -10,7 +10,8 @@ public class DefaultBillingAPI extends BillingAPI {
 	}
 
 	@Override
-	public void requestPurchase(String sku) {
-		System.out.println("Default Billing API recieved purchase request : " + sku);
+	public void requestPurchase(String sku, BillingCallback callback) {
+		System.out.println("Default Billing API recieved purchase request : " + sku + ". CallingBack True.");
+		callback.callback(true);
 	}
 }

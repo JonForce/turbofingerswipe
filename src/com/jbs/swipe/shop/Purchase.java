@@ -5,12 +5,9 @@ import com.jbs.swipe.User;
 
 public interface Purchase {
 	
-	/** Fulfill the Purchase by giving the items to the user. */
-	public void giveItemsTo(User user);
-	
 	/** Retrieve payment from the user. If payment could not be tendered, return false.
 	 * @return true if the user successfully paid. */
-	public boolean retrievePayment(User user);
+	public void attemptPurchase(User user);
 	
 	/** @return the icon that denotes the item that may be bought. */
 	public Texture icon();

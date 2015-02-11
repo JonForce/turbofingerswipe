@@ -85,9 +85,11 @@ public class PausedState extends OverlayState {
 		return new Renderable() {
 			@Override
 			public void renderTo(SpriteBatch batch) {
-				homeButton.renderTo(batch);
-				restartButton.renderTo(batch);
-				resumeButton.renderTo(batch);
+				game.beginIODChange(batch, 3);
+					homeButton.renderTo(batch);
+					restartButton.renderTo(batch);
+					resumeButton.renderTo(batch);
+				game.endIODChange(batch, 3);
 			}
 		};
 	}
