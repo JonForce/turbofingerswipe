@@ -10,6 +10,7 @@ import com.jbs.framework.rendering.ui.Button;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.Font;
+import com.jbs.swipe.levels.LevelState;
 
 public abstract class TrapSpawner implements Renderable, Updatable {
 	
@@ -30,9 +31,11 @@ public abstract class TrapSpawner implements Renderable, Updatable {
 	private final Button button;
 	
 	protected final Game game;
+	protected final LevelState level;
 	
-	public TrapSpawner(Game game, int position, final Trap<?> trap) {
+	public TrapSpawner(Game game, LevelState level, int position, final Trap<?> trap) {
 		this.game = game;
+		this.level = level;
 		this.trap = trap;
 		
 		this.font = new Font(game.getTexture(SOURCE));

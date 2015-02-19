@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
+import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
@@ -195,6 +196,8 @@ abstract class BombState implements Renderable, Updatable {
 
 class IdleState extends BombState {
 	
+	private float rotation = 0;
+	
 	public IdleState(Bomb bomb) {
 		super(bomb);
 	}
@@ -209,9 +212,24 @@ class IdleState extends BombState {
 		assertBombIsInScreen();
 	}
 	
+	/** @return the rotation of the Bomb in degrees. */
+	public float rotation() {
+		return rotation;
+	}
+	
+	/** Set the Bomb's rotation to the specified angle in degrees. */
+	public void setRotation(float degrees) {
+		rotation = degrees;
+	}
+	
+	/** Rotate the Bomb by the specified angle in degrees. */
+	public final void rotate(float degrees) {
+		setRotation(rotation() + degrees);
+	}
+	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		batch.draw(bomb.texture(), bomb.x(), bomb.y());
+		Graphic.drawRotated(batch, bomb.texture(), new Vector2(bomb.x(), bomb.y()), rotation());
 	}
 }
 
@@ -224,9 +242,9 @@ class LitState extends IdleState {
 		super(bomb);
 		flame = new SmallFlame() {
 			@Override
-			protected float x() { return bomb.x() + bomb.texture().getWidth()/2; }
+			protected float x() { return bomb.x() + (float)Math.cos(Math.toRadians(rotation() + 90)) * bomb.texture().getHeight()/2; }
 			@Override
-			protected float y() { return bomb.y() + bomb.texture().getHeight(); }
+			protected float y() { return bomb.y() + (float)Math.sin(Math.toRadians(rotation() + 90)) * bomb.texture().getHeight()/2; }
 		};
 	}
 	
@@ -266,8 +284,6 @@ class LitState extends IdleState {
 class GrabbedState extends LitState {
 	
 	private Vector2
-		/** The grab offset. */
-		offset,
 		/** The speed at which the Bomb is being moved. */
 		velocity;
 	
@@ -277,12 +293,7 @@ class GrabbedState extends LitState {
 
 	public GrabbedState(Bomb bomb) {
 		super(bomb);
-		offset = new Vector2();
 		velocity = new Vector2();
-	}
-	
-	public final void setOffset(float x, float y) {
-		offset.set(x, y);
 	}
 	
 	@Override
@@ -291,12 +302,12 @@ class GrabbedState extends LitState {
 		if (input.isTouched()) {
 			// Update the Grabbed state.
 			super.updateWith(input);
-			bomb.setPosition(input.getX() + offset.x, input.getY() + offset.y);
+			bomb.setPosition(input.getX(), input.getY());
 			velocity.add(input.getDeltaX(), input.getDeltaY());
 			velocity.mul(velocityDamping);
 		} else {
 			// The player released the Bomb, enter the thrown-state.
-			bomb.setState(new ThrownState(bomb, velocity));
+			bomb.setState(new ThrownState(bomb, velocity, 10f));
 		}
 		
 	}
@@ -307,12 +318,14 @@ class ThrownState extends LitState {
 	private float
 		damping = .95f,
 		// The time until the Bomb enters its exploding-state.
-		explosionDelay = 500f;
+		explosionDelay = 500f,
+		torque;
 	private Vector2 velocity;
 	
-	public ThrownState(Bomb bomb, Vector2 velocity) {
+	public ThrownState(Bomb bomb, Vector2 velocity, float torque) {
 		super(bomb);
 		this.velocity = velocity;
+		this.torque = torque;
 	}
 	
 	@Override
@@ -322,6 +335,9 @@ class ThrownState extends LitState {
 		bomb.setPosition(bomb.x() + velocity.x, bomb.y() + velocity.y);
 		// Multiply the velocity by the damping.
 		velocity.mul(damping);
+		
+		super.rotate(torque);
+		torque *= damping;
 		
 		// Bounce the Bomb off the edge of the screen.
 		if (bomb.x() + bomb.texture().getWidth() > bomb.game.screenWidth() || bomb.x() < 0)

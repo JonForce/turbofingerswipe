@@ -120,10 +120,9 @@ public final class GameModeSelectionState implements ApplicationState {
 				new Animator(game)
 					.rotateGraphicIndefinitely(this, ROTATION_ANIMATION_DURATION);
 			}
-			// When the Button is released, bind the "Advanced" GameMode (Which is really just the Puzzle GameMode).
+			// When the Button is released, bind the "Advanced" GameMode (Which is really just the Arcade GameMode).
 			public void onRelease() {
-				game.setLevelState(new ArcadeModeEasy(game));
-				game.setState(game.levelState());
+				game.setState(new ArcadeModeEasy(game));
 			}
 		};
 		// Initialize the Normal GameMode Button.
@@ -135,8 +134,7 @@ public final class GameModeSelectionState implements ApplicationState {
 			}
 			// When the Button is released, bind the Normal GameMode.
 			public void onRelease() {
-				game.setLevelState(new NormalMode(game));
-				game.setState(game.levelState());
+				game.setState(new NormalMode(game));
 			}
 		};
 		// Initialize the Puzzle GameMode Button.
@@ -148,14 +146,13 @@ public final class GameModeSelectionState implements ApplicationState {
 			}
 			// When the Button is released, bind the Normal GameMode.
 			public void onRelease() {
-				game.setLevelState(new PuzzleMode(game) {
+				game.setState(new PuzzleMode(game) {
 					@Override
 					protected boolean hasBoughtPuzzleMode() {
 						// For now, always assume that the User has bought PuzzleMode.
 						return true;
 					}
 				});
-				game.setState(game.levelState());
 			}
 		};
 		

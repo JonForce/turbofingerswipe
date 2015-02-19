@@ -66,7 +66,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		timeToSwipe, // The time until the SwipeTile expires
 		requiredSwipeDirection, // The required swipe direction in degrees
 		swipeAngleTolerance = 70, // The tolerated inaccuracy for a swipe
-		requiredSwipeMagnitude; // The required swipe magnitude
+		requiredSwipeMagnitude; // The required swipe magnitude; // The amount of time that the Tile was paused for. 
 	
 	// State data, used to determine when to trigger events.
 	private boolean wasExpired = false;
@@ -382,7 +382,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	
 	/** @return the percent that the SwipeTile is expired in decimal form. */
 	public float percentExpired() {
-		return deltaTime()/timeToSwipe;
+		return deltaTime() / timeToSwipe;
 	}
 	
 	/** @return true when the SwipeTile's arrow is green. */
@@ -467,6 +467,13 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		
 		// Set the SwipeTile to the new-coordinates.
 		setPosition(newX, newY);
+	}
+	
+	/** Add to the total amount of time that the Tile was paused for. This will delay
+	 * expiration of the Tile.
+	 * @param timePaused the amount of time the Tile was paused in milliseconds. */
+	public final void addPausedTime(float timePaused) {
+		startTime += timePaused * 1E6f;
 	}
 	
 	/** @return the x-Coordinate of the center of the SwipeTile. */

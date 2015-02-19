@@ -30,6 +30,7 @@ import com.jbs.swipe.shop.TrapPurchase;
 import com.jbs.swipe.states.GameModeSelectionState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
+import com.jbs.swipe.states.PausedState;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
 import com.jbs.swipe.traps.Bomb;
@@ -86,7 +87,7 @@ public class Game extends Application {
 	/** Reset the Game to it's MainMenuState. Throws RuntimeException if the Game
 	 * is already in it's MainMenuState. */
 	public void returnToMainMenu() {
-		if (this.IS_STRICT && this.isAtMainMenu())
+		if (this.applicationState() == mainMenuState())
 			throw new RuntimeException("Cannot returnToMainMenu if the Game is already in it's MainMenuState.");
 		
 		this.setState(mainMenuState());
@@ -138,13 +139,12 @@ public class Game extends Application {
 	 * Throws a RuntimeException if the Game is already in it's PausedState. */
 	@Override
 	public final void pause() {
-		if (this.applicationState() == levelState() && // If the Game is in it's LevelState,
-				this.isCreated()) // And the Game is Created,
-			// Pause the Level.
-			levelState().pause();
+		// If we're in a Level, pause it.
+		if (this.applicationState() instanceof LevelState && this.isCreated())
+			((LevelState) applicationState()).pause();
 		
 		// Set the state that the Game will return to when resumed.
-		returnState = this.applicationState();
+		//returnState = this.applicationState();
 	}
 	
 	/** Start the Level and play the Game's background music.
@@ -156,7 +156,7 @@ public class Game extends Application {
 			// Resume the background music.
 			playBackgroundMusic(true); // True because the background Music should be looped.
 		
-		setState(returnState);
+		//setState(returnState);
 	}
 	
 	@Override
@@ -198,23 +198,14 @@ public class Game extends Application {
 		lastRenderTime = System.currentTimeMillis();
 	}
 	
-	public void beginIODChange(SpriteBatch batch, float deltaIOD) {
-		
-	}
-	
-	public void endIODChange(SpriteBatch batch, float deltaIOD) {
-		
-	}
+	public void beginIODChange(SpriteBatch batch, float deltaIOD) { }
+	public void endIODChange(SpriteBatch batch, float deltaIOD) { }
 	
 	public final void openShop() {
 		if (this.applicationState() instanceof ShopState)
 			throw new RuntimeException("Already in ShopState!");
 		
 		setState(shopState());
-	}
-	
-	public final void setLevelState(LevelState newLevelState) {
-		this.levelState = newLevelState;
 	}
 	
 	/** @return the Object that handles all the Game's Tweens. */
@@ -237,10 +228,10 @@ public class Game extends Application {
 		return created;
 	}
 	
-	/** @return true if the Game is in it's MainMenuState. */
-	public final boolean isAtMainMenu() {
-		return (this.applicationState() == mainMenuState());
-	}
+//	/** @return true if the Game is in it's MainMenuState. */
+//	public final boolean isAtMainMenu() {
+//		return (this.applicationState() == mainMenuState());
+//	}
 	
 	/** @return the Game's Screen's virtual width. */
 	public final int screenWidth() {
@@ -262,10 +253,6 @@ public class Game extends Application {
 		return new Vector2(screenWidth(), screenHeight());
 	}
 	
-	public final LevelState levelState() {
-		return levelState;
-	}
-	
 	public final Renderable background() {
 		return background;
 	}
@@ -278,8 +265,6 @@ public class Game extends Application {
 	
 	/** Initialize the Game's AssetManager. */
 	protected void initializeAssets() {
-		
-		
 		// Create our psuedo-random number generator.
 		random = new Random();
 		

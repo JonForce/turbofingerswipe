@@ -8,13 +8,14 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.levels.LevelState;
 
 public class DarkHoleSpawner extends TrapSpawner implements Renderable, Updatable {
 	
 	private final ArrayList<DarkHole> darkHoles;
 
-	public DarkHoleSpawner(Game game, int position) {
-		super(game, position, new DarkHole(game));
+	public DarkHoleSpawner(Game game, LevelState level, int position) {
+		super(game, level, position, new DarkHole(game));
 		this.darkHoles = new ArrayList<DarkHole>(5);
 	}
 	
@@ -22,7 +23,7 @@ public class DarkHoleSpawner extends TrapSpawner implements Renderable, Updatabl
 	public void spawnTrap() {
 		DarkHole darkHole = new DarkHole(game);
 		darkHole.setPosition(100, 100);
-		darkHole.setTargets(game.levelState());
+		darkHole.setTargets(level);
 		darkHole.activate();
 		darkHoles.add(darkHole);
 	}

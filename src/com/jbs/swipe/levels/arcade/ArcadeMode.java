@@ -5,7 +5,6 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
@@ -17,7 +16,9 @@ import com.jbs.swipe.tiles.Row;
 import com.jbs.swipe.tiles.RowController;
 import com.jbs.swipe.tiles.SwipeListener;
 import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.traps.Bomb;
 import com.jbs.swipe.traps.BombSpawner;
+import com.jbs.swipe.traps.DarkHole;
 import com.jbs.swipe.traps.DarkHoleSpawner;
 
 public abstract class ArcadeMode extends LevelState implements SwipeListener {
@@ -122,11 +123,11 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 		initializeControllers();
 		initializeDifficulty();
 		
-		bombSpawner = new BombSpawner(game(), 1);
-		bombSpawner.setStock(10);
+		bombSpawner = new BombSpawner(game(), this, 1);
+		bombSpawner.setStock(game().user().stockOf(new Bomb(game())));
 		
-		darkHoleSpawner = new DarkHoleSpawner(game(), 2);
-		darkHoleSpawner.setStock(10);
+		darkHoleSpawner = new DarkHoleSpawner(game(), this, 2);
+		darkHoleSpawner.setStock(game().user().stockOf(new DarkHole(game())));
 	}
 	
 	@Override
@@ -138,6 +139,10 @@ public abstract class ArcadeMode extends LevelState implements SwipeListener {
 	protected void reset() {
 		// Reset all the Level's Tiles.
 		resetTiles();
+		// Reinitialize the RowControllers, a lazy way to reset them.
+		//initializeControllers();
+		hideTopRow();
+		hideBottomRow();
 		// Update the RowControllers.
 		updateRowControllers();
 		

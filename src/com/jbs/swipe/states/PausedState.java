@@ -10,6 +10,7 @@ import com.jbs.swipe.gui.buttons.HomeButton;
 import com.jbs.swipe.gui.buttons.RestartButton;
 import com.jbs.swipe.gui.buttons.ResumeButton;
 import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.tiles.SwipeTile;
 
 public class PausedState extends OverlayState {
 	
@@ -23,6 +24,8 @@ public class PausedState extends OverlayState {
 	
 	private LevelState levelState;
 	
+	private long pauseStartTime;
+	
 	public PausedState(Game game, LevelState levelState) {
 		super(game);
 		this.levelState = levelState;
@@ -31,6 +34,9 @@ public class PausedState extends OverlayState {
 	@Override
 	public void enterState() {
 		System.out.println("Entering PausedState.");
+		
+		pauseStartTime = System.currentTimeMillis();
+		
 		// Stop the background music.
 		game.stopBackgroundMusic();
 		
@@ -51,6 +57,14 @@ public class PausedState extends OverlayState {
 		homeButton.updateWith(app.input);
 	}
 	
+	/** Resumes the Level that is in the Paused State. */
+	public void unpause() {
+		for (SwipeTile tile : levelState.tiles())
+			if (tile != null)
+				tile.addPausedTime(timePaused());
+		game.setState(levelState);
+	}
+	
 	/* @return true if the State's Buttons have been created. */
 	private boolean buttonsInitialized() {
 		// Return false if any of the buttons are null.
@@ -66,8 +80,22 @@ public class PausedState extends OverlayState {
 		
 		// Initialize all the Buttons at the center of the screen.
 		homeButton = new HomeButton(game, SCREEN_CENTER);
-		resumeButton = new ResumeButton(game, SCREEN_CENTER);
-		restartButton = new RestartButton(game, SCREEN_CENTER);
+		resumeButton = new ResumeButton(game, SCREEN_CENTER) {
+			@Override
+			public void resume() {
+				unpause();
+			}
+		};
+		restartButton = new RestartButton(game, SCREEN_CENTER) {
+			@Override
+			public void resetLevel() {
+				levelState.restart();
+			}
+			@Override
+			public void resumeLevel() {
+				unpause();
+			}
+		};
 		
 		// Translate the home-button right by it's width to make it not intersect the play-button
 		homeButton.translate(homeButton.texture().getWidth(), 0);
@@ -97,5 +125,9 @@ public class PausedState extends OverlayState {
 	@Override
 	protected Renderable subScreen() {
 		return levelState;
+	}
+	
+	protected final long timePaused() {
+		return System.currentTimeMillis() - pauseStartTime;
 	}
 }

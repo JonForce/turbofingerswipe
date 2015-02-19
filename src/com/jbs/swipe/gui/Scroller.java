@@ -9,7 +9,7 @@ public class Scroller implements Updatable {
 		position = 0,
 		damping = .95f,
 		velocity = 0f,
-		inputScale = .5f;
+		inputScale = .15f;
 	
 	private final float
 		lowerBound, upperBound;
@@ -63,6 +63,11 @@ public class Scroller implements Updatable {
 	/** Set the velocity. */
 	public void setVelocity(float velocity) {
 		this.velocity = velocity;
+	}
+	
+	/** Set the normal to multiply the velocity by every update. */
+	public void setDamping(float newDamping) {
+		this.damping = newDamping;
 	}
 	
 	/** @return the Scroller's position. */

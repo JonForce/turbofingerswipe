@@ -123,7 +123,16 @@ public abstract class GameOverState implements ApplicationState {
 		
 		// Initialize the Buttons at the center of the screen.
 		homeButton = new HomeButton(game, SCREEN_CENTER);
-		restartButton = new RestartButton(game, SCREEN_CENTER);
+		restartButton = new RestartButton(game, SCREEN_CENTER) {
+			@Override
+			public void resetLevel() {
+				level.restart();
+			}
+			@Override
+			public void resumeLevel() {
+				game.setState(level);
+			}
+		};
 		
 		// Translate the Buttons' bottom edges to reside on the middle of the bottom of the screen.
 		homeButton.setPosition((int)SCREEN_CENTER.x, homeButton.texture().getHeight() / 2);
