@@ -7,9 +7,9 @@ import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
-import com.jbs.swipe.TouchManager;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 
-public class Row implements SwipeListener, Renderable, Updatable {
+public class Row implements TileListener, Renderable, Updatable {
 	
 	public static final int
 		DIRECTION_LEFT = -1,
@@ -20,14 +20,13 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		DEFAULT_SCALE = .5f;
 	
 	/* The SwipeListener to notify of all the Row's SwipeTile's events. */
-	protected SwipeListener listener;
+	protected TileListener listener;
 	
 	protected final Game game;
 	
 	/* The positions on the Screen of the slots. */
 	private Vector2[] slotPositions;
 	private SwipeTile[] tiles;
-	private TouchManager touchManager;
 	
 	// The center of the Row.
 	private final Vector2 center;
@@ -127,7 +126,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	}
 	
 	/** Set the Listener to notify of all the Row's SwipeTile's events. */
-	public void setSwipeListener(SwipeListener newListener) {
+	public void setSwipeListener(TileListener newListener) {
 		this.listener = newListener;
 	}
 	
@@ -169,8 +168,25 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	
 	public final void collapseTile(SwipeTile tile) {
 		for (int i = 0; i != numberOfTiles(); i ++)
-			if (this.tiles[i].equals(tile))
+			if (this.tiles[i].equals(tile)) {
 				collapseTile(i);
+				return;
+			}
+		throw new RuntimeException("Could not collapse SwipeTile, tile not contained in Row.");
+	}
+	
+	/* Expand/Contract the the Row to be of the specified width (in Tiles). */
+	public final void setSize(int newSize) {
+		// While the Row is not the desired size,
+		while (numberOfTiles() != newSize)
+			// If the Row is larger than the desired size,
+			if (numberOfTiles() > newSize)
+				// Contract the Row to be one Tile smaller.
+				contract();
+			// Else the Row is smaller than the desired size,
+			else
+				// Expand the Row to be one Tile larger.
+				expand();
 	}
 	
 	/**
@@ -179,6 +195,9 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	 */
 	public final void setVisible(boolean flag) {
 		this.visible = flag;
+		for (SwipeTile tile : tiles)
+			if (tile != null)
+				tile.setOpacity(flag? 1 : 0);
 	}
 	
 	public final void animateTilesIn() {
@@ -188,40 +207,37 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		}
 	}
 	
-	/* Collapse the Row over it's n'th Tile. */
+	/** Collapse the Row over it's n'th Tile. */
 	public final void collapseTile(int tileToDissolve) {
 		// Collapse the Row over the specified Tile in the Row's default direction.
 		collapseTile(tileToDissolve, this.direction);
 	}
 	
-	public final void setTouchManager(TouchManager manager) {
-		this.touchManager = manager;
-		for (SwipeTile tile : this.tiles)
-			manager.addListener(tile);
-	}
-	
-	/* Contract the Row in the specified direction to be have one less Tile. */
+	/** Contract the Row in the specified direction to be have one less Tile. */
 	public final void contract(int direction) {
 		if (numberOfTiles <= 1)
 			throw new RuntimeException("Cannot contract Row if it only has 1 Tile.");
+		if (direction == DIRECTION_RANDOM)
+			direction = (game.random().nextBoolean())? -1 : 1;
 		
 		final int
 			newNumberOfTiles = numberOfTiles - 1,
-			startCopyingIndex = (direction == DIRECTION_RIGHT)? newNumberOfTiles - 1 : 0;
+			startCopyingIndex = (direction == DIRECTION_RIGHT)? 1 : 0,
+			endCopyingIndex = (direction == DIRECTION_RIGHT)? numberOfTiles : numberOfTiles - 1;
 		
-		redefineRowSize(newNumberOfTiles, startCopyingIndex);
+		redefineRowSize(newNumberOfTiles, startCopyingIndex, endCopyingIndex, 0);
 		
 		// Set each Tile to animate to its new slot.
 		for (int index = 0; index != tiles.length; index ++)
 			tiles[index].setTranslationTarget(getSlot(index), this.animationSpeed);
 	}
-	/* Contract the Row in its default direction to have one less Tile. */
+	/** Contract the Row in its default direction to have one less Tile. */
 	public final void contract() { contract(this.direction); }
 	
-	/* Expand the Row to use another SwipeTile. */
+	/** Expand the Row to use another SwipeTile. */
 	public final void expand(int direction) {
-		// If the direction is set to 0,
-		if (direction == 0)
+		// If the direction is set to random,
+		if (direction == DIRECTION_RANDOM)
 			// Choose a random direction.
 			direction = (game.random().nextBoolean())? -1 : 1;
 		
@@ -232,7 +248,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		final int shift = (direction == DIRECTION_RIGHT)? 1 : 0;
 		// Redefine the Row's Tile and Slot arrays to be of the new size, and copy over the old Tile
 		// references into the new Tile-array starting at the 'shift' index.
-		redefineRowSize(newNumberOfTiles, shift);
+		redefineRowSize(newNumberOfTiles, 0, newNumberOfTiles - 1, shift);
 		
 		// Define the index at which to add a new Tile at,
 		final int indexToAddTileAt =
@@ -250,15 +266,16 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	public final void expand() { expand(this.direction); }
 	
 	@Override
-	public final void recieveEvent(SwipeTile tile, Event event) {
-		if (event == Event.TILE_FINISHED) {
+	public void recieveTileStateChange(SwipeTile tile, TileState oldState, TileState newState) {
+		// If the Tile is finished,
+		if (newState == TileState.FINISHED) {
 			// Collapse the Row over the SwipeTile that should be removed.
 			for (int i = 0; i != numberOfTiles; i ++)
 				if (tiles[i].equals(tile))
 					collapseTile(i, direction);
 		} else
 			if (this.listener != null)
-				listener.recieveEvent(tile, event);
+				listener.recieveTileStateChange(tile, oldState, newState);
 	}
 	
 	public final SwipeTile[] tiles() {
@@ -313,9 +330,6 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		// Set the Tile to notify the Row of all Swipe events.
 		tile.setSwipeListener(this);
 		
-		if (touchManager != null)
-			touchManager.addListener(tile);
-		
 		return tile;
 	}
 	
@@ -334,7 +348,7 @@ public class Row implements SwipeListener, Renderable, Updatable {
 	 * Copies over references to Tiles from the current Tile-array into the new Tile-array starting at
 	 * the specified index.
 	 * @param startCopyingIndex the index to begin copying over Tile references into the new Tile-array. */
-	protected final void redefineRowSize(int newSize, int startCopyingIndex) {
+	protected final void redefineRowSize(int newSize, int startCopyingIndex, int endCopyingIndex, int pasteIndex) {
 		// Store a reference to the current Row's SwipeTiles.
 		final SwipeTile[] oldTileArray = this.tiles;
 		
@@ -350,10 +364,10 @@ public class Row implements SwipeListener, Renderable, Updatable {
 		// Re-define the slot positions.
 		initializeSlotPositions(center, this.spacing());
 		
-		final int endCopyingIndex = (int) Math.min(tiles.length, oldTileArray.length);
+		//final int endCopyingIndex = (int) Math.min(tiles.length, oldTileArray.length);
 		// Copy the oldTileArray into the new Tile array.
-		for (int index = startCopyingIndex; index != endCopyingIndex; index ++)
-			this.tiles[index] = oldTileArray[index];
+		for (int copyIndex = startCopyingIndex; copyIndex != endCopyingIndex; copyIndex ++)
+			this.tiles[pasteIndex++] = oldTileArray[copyIndex];
 	}
 	
 	/** @return the position of the n'th slot. */

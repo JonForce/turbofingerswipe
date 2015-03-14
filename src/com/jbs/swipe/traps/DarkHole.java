@@ -19,7 +19,7 @@ import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.tiles.SwipeTile;
-import com.jbs.swipe.tiles.SwipeListener.Event;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 
 public class DarkHole extends Trap<LevelState> implements Renderable, Updatable {
 	
@@ -165,6 +165,10 @@ public class DarkHole extends Trap<LevelState> implements Renderable, Updatable 
 		for (final SwipeTile tile : tiles) {
 			if (targetedTiles.contains(tile))
 				continue;
+			// If the target is invisible,
+			if (tile.opacity() == 0)
+				// Dont suck it in.
+				continue;
 			
 			// Add the Tile to the list of Tiles getting sucked in.
 			targetedTiles.add(tile);
@@ -178,12 +182,12 @@ public class DarkHole extends Trap<LevelState> implements Renderable, Updatable 
 				.get().setCallback(new TweenCallback() {
 					public void onEvent(int type, BaseTween<?> source) {
 						// Called when the tile are all sucked into the DarkHole.
-						
-						// Notify the Tile's listener that the Tile was correctly swipe (so the player gets points)
-						tile.swipeListener().recieveEvent(tile, Event.TILE_CORRECTLY_SWIPED);
-						// and that the Tile is finished.
-						tile.swipeListener().recieveEvent(tile, Event.TILE_FINISHED);
-						
+						if (tile.tileState() != TileState.EXPIRED && tile.tileState() != TileState.FINISHED) {
+							// Notify the Tile's listener that the Tile was correctly swipe (so the player gets points)
+							tile.setState(TileState.CORRECTLY_SWIPED, false);
+							// and that the Tile is finished.
+							tile.setState(TileState.FINISHED);
+						}
 						// Remove the Tile from the list of Tiles getting sucked in.
 						targetedTiles.remove(tile);
 					}
@@ -213,7 +217,7 @@ public class DarkHole extends Trap<LevelState> implements Renderable, Updatable 
 	
 	@Override
 	public int trapsPerPurchase() {
-		return 5;
+		return 10;
 	}
 	
 	@Override

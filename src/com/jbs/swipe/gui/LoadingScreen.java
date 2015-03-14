@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
+import com.jbs.swipe.Game;
 
 public abstract class LoadingScreen implements Renderable {
 	
@@ -14,6 +15,7 @@ public abstract class LoadingScreen implements Renderable {
 	
 	/* The source locations of the respective Textures */
 	private FileHandle
+		LOGO_SOURCE,
 		BACKGROUND_SOURCE,
 		EMPTY_BAR_SOURCE,
 		FULL_BAR_SOURCE,
@@ -27,13 +29,18 @@ public abstract class LoadingScreen implements Renderable {
 		fullBar, // The loading bar's foreground.
 		finger,
 		percent; // The finger that swipes the loading bar.
+	private Texture logo;
 	
 	private Font font;
 	private Vector2 fontRightBounds;
+	private Game game;
 	
-	public LoadingScreen(int width, int height) {
+	public LoadingScreen(Game game, int width, int height) {
+		this.game = game;
+		
 		initializeFileHandles();
 		
+		logo = new Texture(LOGO_SOURCE);
 		font = new Font(new Texture(FONT_SOURCE));
 		
 		// The center of the specified width and height of our LoadingScreen.
@@ -82,18 +89,30 @@ public abstract class LoadingScreen implements Renderable {
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		background.renderTo(batch);
-		emptyBar.renderTo(batch);
-		fullBar.renderTo(batch);
-		finger.renderTo(batch);
-		
-		font.renderIntegerTo(batch, (int)(percentComplete() * 100), (int) fontRightBounds.x, (int) fontRightBounds.y);
-		percent.renderTo(batch);
+		final float switchPercent = .5f;
+		if (percentComplete() > switchPercent) {
+			background.renderTo(batch);
+			game.beginIODChange(batch, 1.5f);
+				emptyBar.renderTo(batch);
+				fullBar.renderTo(batch);
+				
+				font.renderIntegerTo(batch, (int)(percentComplete() * 100), (int) fontRightBounds.x, (int) fontRightBounds.y);
+				percent.renderTo(batch);
+			game.endIODChange(batch, 1.5f);
+			
+			game.beginIODChange(batch, 2.5f);
+				finger.renderTo(batch);
+			game.endIODChange(batch, 2.5f);
+		} else {
+			batch.draw(logo, 0, 0, game.screenWidth(), game.screenHeight());
+		}
+				
 	}
 	
 	public abstract float percentComplete();
 	
 	protected void initializeFileHandles() {
+		LOGO_SOURCE = Gdx.files.internal("assets/GUI/Loading/Intro.png");
 		BACKGROUND_SOURCE = Gdx.files.internal("assets/GUI/Loading/Background.png");
 		EMPTY_BAR_SOURCE = Gdx.files.internal("assets/GUI/Loading/Bar/Empty.png");
 		FULL_BAR_SOURCE = Gdx.files.internal("assets/GUI/Loading/Bar/Full.png");

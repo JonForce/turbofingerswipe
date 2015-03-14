@@ -85,6 +85,7 @@ public abstract class GameOverState implements ApplicationState {
 	@Override
 	public void exitState() {
 		System.out.println("Exiting GameOverState.");
+		game.playBackgroundMusic(true);
 	}
 	
 	public abstract int currentScore();

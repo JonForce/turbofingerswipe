@@ -1,11 +1,13 @@
 package com.jbs.swipe.tiles;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,7 +21,7 @@ import com.jbs.swipe.Swipe;
 import com.jbs.swipe.TouchListener;
 import com.jbs.swipe.effects.Animator;
 
-public class SwipeTile implements Renderable, SwipeListener, TouchListener {
+public class SwipeTile implements Renderable {
 	
 	public final String
 		INCORRECT_SWIPE_SOUND_SOURCE = "assets/SFX/Incorrect.wav",
@@ -37,9 +39,10 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	private static float
 		defaultVolume = .5f; // The default volume to play the SwipeTile's Sounds at.
 	
-	protected enum TileState {
-		BLUE, YELLOW, ORANGE, RED, CORRECTLY_SWIPED, EXPIRED
+	public static enum TileState {
+		BLUE, YELLOW, ORANGE, RED, CORRECTLY_SWIPED, INCORRECTLY_SWIPED, EXPIRED, FINISHED
 	}
+	
 	protected TileState defaultTileState = TileState.BLUE;
 	// The Stages for the SwipeTile to progress through.
 	protected TileState[] lifecycle = new TileState[] {
@@ -66,22 +69,23 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		timeToSwipe, // The time until the SwipeTile expires
 		requiredSwipeDirection, // The required swipe direction in degrees
 		swipeAngleTolerance = 70, // The tolerated inaccuracy for a swipe
-		requiredSwipeMagnitude; // The required swipe magnitude; // The amount of time that the Tile was paused for. 
-	
-	// State data, used to determine when to trigger events.
-	private boolean wasExpired = false;
+		requiredSwipeMagnitude; // The required swipe magnitude;
 	
 	private Swipe currentSwipe;
-	private SwipeListener swipeListener;
+	private int maxInputs = 2;
+	private boolean[] storedTouchStates;
 	
 	private Game game;
 	private TileState tileState;
+	private TileListener listener;
 	
 	public SwipeTile(final Game game, Vector2 swipeRequirement, Texture arrowGreen, Texture arrowGray, float timeToSwipe) {
 		this.game = game;
 		this.arrowGreen = arrowGreen;
 		this.arrowGray = arrowGray;
 		this.tileState = defaultTileState;
+		
+		this.storedTouchStates = new boolean[maxInputs];
 		
 		// Default center of the SwipeTile is the center of the Game's Screen.
 		this.center = game.screenCenter();
@@ -146,7 +150,6 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		this.scale(DEFAULT_SCALE);
 		
 		startTime = System.nanoTime();
-		swipeListener = this;
 		
 		originalTileSize = new Vector2(tile.height(), tile.height());
 	}
@@ -181,95 +184,47 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	public void updateWith(InputProxy input) {
 		// Update the SwipeTile's translation animation.
 		updateTranslationAnimation();
-		
-		if (!this.isCorrectlySwiped())
+
+		if (!this.isCorrectlySwiped()) {
 			// Set the State of the SwipeTile to be the current stage in it's lifecycle.
-			setState(lifecycle[lifecycleStage()]);
-		
-		if (!expired()) {
-			// If our current swipe is created and has not expired,
-			if (currentSwipe != null && !currentSwipe.expired())
-				// Update the swipe and potentially expire it.
+			if (tileState != lifecycle[lifecycleStage()] && tileState != TileState.INCORRECTLY_SWIPED)
+				setState(lifecycle[lifecycleStage()]);
+			
+			if (currentSwipe == null) {
+				for (int i = 0; i != 2; i ++) {
+					if (this.contains(positionOf(input, i)) && input.isTouched(i))
+						currentSwipe = new Swipe(input, i, !input.justTouched(), requiredSwipeMagnitude) {
+							@Override
+							public void onExpire() {
+								if (currentSwipe.checkAngle(requiredSwipeDirection, swipeAngleTolerance)) {
+									if (canChangeStateTo(TileState.CORRECTLY_SWIPED))
+										// Set the SwipeTile to it's correctly-swiped State.
+										setState(TileState.CORRECTLY_SWIPED);
+								} else if (!currentSwipe.isComboSwipe()) {
+									if (canChangeStateTo(TileState.INCORRECTLY_SWIPED))
+										// Enter the Incorrectly swiped State.
+										setState(TileState.INCORRECTLY_SWIPED);
+								}
+								currentSwipe = null;
+							}
+						};
+				}
+			} else
 				currentSwipe.updateExpiration();
 		}
 		
-		// If the SwipeTile is expired and was not expired the last time it's state was saved,
-		if (expired() && !wasExpired)
-			if (swipeListener != null)
-				// Call the onExpire() event.
-				swipeListener.recieveEvent(this, Event.TILE_EXPIRED);
-		
-		// Save the state of our SwipeTile.
-		wasExpired = expired();
-	}
-	
-	@Override
-	public void onTouch(Vector2 touchPosition, int touchID, InputProxy input) {
-		// If the input just touched and the touch is within our SwipeTile's bounds,
-		if (this.contains(touchPosition)) {
-			// Define the tolerance for swipe inaccuracy in degrees.
-			final float toleranceDegrees = swipeAngleTolerance;
-			// Define the SwipeTile to use.
-			final SwipeTile tile = this;
-			// Define the Correctly-Swiped State.
-			final TileState correctlySwipedState = TileState.CORRECTLY_SWIPED;
-			
-			// Create a new Swipe object with an origin of our touchPosition, updated with our input,
-			// and with a maximum length of requiredSwipeMagnitude.
-			currentSwipe = new Swipe(input, touchID, touchPosition, requiredSwipeMagnitude) {
-				// Listen for the expiration of our Swipe, it expires when the terminal magnitude is met.
-				@Override
-				public void onExpire() {
-					// If the Swipe's angle matches our required angle within the tolerance,
-					if (this.checkAngle(requiredSwipeDirection, toleranceDegrees)) {
-						// We have determined the swipe to be correct.
-						
-						// Play the correct-swipe sound.
-						game.audio().playSound(Gdx.files.internal(CORRECT_SWIPE_SOUND_SOURCE), volume);
-						// Set the SwipeTile to it's correctly-swiped State.
-						tile.setState(correctlySwipedState);
-						
-						new Animator(game)
-							.shrinkTile(tile, arrowGreenTime())
-							.getTween(0).setCallback(new TweenCallback() {
-								@Override
-								public void onEvent(int type, BaseTween<?> source) {
-									if (type == TweenCallback.COMPLETE)
-										if (swipeListener != null)
-											// Notify the SwipeListener that the Tile has finished.
-											swipeListener.recieveEvent(tile, Event.TILE_FINISHED);
-								}
-							});
-						
-						// Trigger the SwipeTile's SwipeListener's onCorrectSwipe event.
-						swipeListener.recieveEvent(tile, Event.TILE_CORRECTLY_SWIPED);
-					} else {
-						// We have determined the swipe to have been incorrect.
-						
-						// Play the incorrect-swipe sound.
-						game.audio().playSound(Gdx.files.internal(INCORRECT_SWIPE_SOUND_SOURCE), volume);
-						
-						if (swipeListener != null)
-							// Trigger the SwipeTile's SwipeListener's onIncorrectSwipe event.
-							swipeListener.recieveEvent(tile, Event.TILE_INCORRECTLY_SWIPED);
-					}
-				}
-			};
-		}
-	}
-
-	@Override
-	public void onRelease(int touchID) {
-		
+		for (int i = 0; i != maxInputs; i ++)
+			storedTouchStates[i] = input.isTouched(i);
 	}
 	
 	/** Reset the SwipeTile to it's state when it was constructed (Excluding the volume). */
 	public void reset() {
 		// Reset the SwipeTile's state data.
 		startTime = System.nanoTime();
-		wasExpired = false;
 		// Reset the Tile's State.
 		tileState = defaultTileState;
+		// Reset the opacity
+		opacity = 1;
 		// Refresh the arrow's Texture.
 		refreshArrow();
 	}
@@ -330,8 +285,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	}
 	
 	/** Set the SwipeListener to notify of SwipeTile events. */
-	public void setSwipeListener(SwipeListener newListener) {
-		this.swipeListener = newListener;
+	public void setSwipeListener(TileListener newListener) {
+		this.listener = newListener;
 	}
 	
 	/** Set the SwipeTile's arrow textures and swipe requirements to suite the
@@ -404,8 +359,8 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	}
 	
 	/** @return the listener of this Tile's events. */
-	public final SwipeListener swipeListener() {
-		return this.swipeListener;
+	public final TileListener swipeListener() {
+		return this.listener;
 	}
 	
 	/**
@@ -453,7 +408,7 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	}
 	
 	/** Update the SwipeTile's translation animation. */
-	public final void updateTranslationAnimation() {
+	public void updateTranslationAnimation() {
 		if (target == null)
 			return;
 		
@@ -508,40 +463,71 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
 	}
 	
+	/** @return true if the Tile can be set to the new state without conflict. */
+	public boolean canChangeStateTo(TileState newState) {
+		return !((tileState == TileState.CORRECTLY_SWIPED && newState != TileState.FINISHED) ||
+				(tileState == TileState.INCORRECTLY_SWIPED && newState != TileState.FINISHED) ||
+				tileState == newState);
+	}
+	
+	/** Set the State of the SwipeTile.
+	 * @param react Set to true if the Tile should react to its change in state. */
+	public void setState(TileState newState, boolean react) {
+		if (tileState == newState)
+			throw new RuntimeException("Cannot set a Tile to the state it is already in : " + newState);
+		if (!canChangeStateTo(newState))
+			throw new RuntimeException("Cannot set a Tile to " + newState + " when it is in it's " + tileState + " state.");
+		
+		TileState oldState = this.tileState;
+		this.tileState = newState;
+		refreshArrow();
+		
+		if (react)
+			if (newState == TileState.CORRECTLY_SWIPED) {
+				// Play the correct-swipe sound.
+				game.audio().playSound(Gdx.files.internal(CORRECT_SWIPE_SOUND_SOURCE), volume);
+				
+				new Animator(game)
+					.shrinkTile(this, arrowGreenTime())
+					.getTween(0).setCallback(new TweenCallback() {
+						@Override
+						public void onEvent(int type, BaseTween<?> source) {
+							if (type == TweenCallback.COMPLETE)
+								if (listener != null)
+									setState(TileState.FINISHED);
+						}
+					});
+			} else if (newState == TileState.INCORRECTLY_SWIPED) {
+				// Play the incorrect-swipe sound.
+				game.audio().playSound(Gdx.files.internal(INCORRECT_SWIPE_SOUND_SOURCE), volume);
+				
+			}
+		
+		if (this.listener != null)
+			this.listener.recieveTileStateChange(this, oldState, newState);
+	}
+	/** Set the State of the SwipeTile.*/
+	public void setState(TileState newState) {
+		this.setState(newState, true);
+	}
+	
+	/** @return the State of the SwipeTile. */
+	public TileState tileState() {
+		return this.tileState;
+	}
+	
+	/** @return the Rectangle that surrounds the SwipeTile. */
+	protected Rectangle boundingBox() {
+		Vector2 bottomLeft = new Vector2(this.x() - tile.width()/2, this.y() - tile.height()/2);
+		return new Rectangle(bottomLeft.x, bottomLeft.y, tile.width(), tile.height());
+	}
+	
 	/** Refresh the SwipeTile's arrow's Texture. */
 	protected void refreshArrow() {
 		if (this.isCorrectlySwiped())
 			arrow.setTexture(arrowGreen);
 		else
 			arrow.setTexture(arrowGray);
-	}
-	
-	/** Set the State of the SwipeTile. */
-	protected void setState(TileState newState) {
-		this.tileState = newState;
-		refreshArrow();
-	}
-	
-	/** @return the State of the SwipeTile. */
-	protected TileState tileState() {
-		return this.tileState;
-	}
-	
-	/** @return the Rectangle that surrounds the SwipeTile. */
-	protected Rectangle boundingBox() {
-		return new Rectangle(bottomLeft().x, bottomLeft().y, tile.width(), tile.height());
-	}
-	
-	/** @return the bottom left corner of the SwipeTile. */
-	protected Vector2 bottomLeft() {
-		return new Vector2(this.x() - tile.width()/2, this.y() - tile.height()/2);
-	}
-	
-	/**
-	 * @return the top right corner of the SwipeTile.
-	 */
-	protected Vector2 topRight() {
-		return new Vector2(this.x() + tile.width()/2, this.y() + tile.height()/2);
 	}
 	
 	/** @return the stage of the lifecycle that the SwipeTile should use if it is in
@@ -578,6 +564,18 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 	 */
 	protected final Vector2 positionOf(InputProxy input, int touchID) {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
+	}
+	
+	private boolean checkAngle(float angle, float requiredAngle, float toleranceDegrees) {
+		// The minimum angle of the swipe required to return true.
+		float minimumAngle = requiredAngle - toleranceDegrees;
+		// The maximum angle of the swipe required to return true;
+		float maximumAngle = requiredAngle + toleranceDegrees;
+		if (angle > requiredAngle + 180)
+			angle -= (requiredAngle + 360);
+		// Return true when the swipe's angle is greater than the minimum angle
+		// and less than the maximum angle (Inclusively).
+		return angle >= minimumAngle && angle <= maximumAngle;
 	}
 	
 	/**
@@ -628,9 +626,6 @@ public class SwipeTile implements Renderable, SwipeListener, TouchListener {
 		else
 			return Direction.DOWN;
 	}
-	
-	@Override
-	public void recieveEvent(SwipeTile tile, Event event) { }
 	
 	/** @return the default SwipeTile volume. */
 	public static float defaultVolume() {

@@ -5,12 +5,12 @@ import com.jbs.swipe.Game;
 public class LargeCoinPurchase extends JBSCoinPurchase {
 	
 	public LargeCoinPurchase(Game game, BillingAPI billingAPI) {
-		super(game, billingAPI, "assets/GUI/Shop/Coins/ABoatLoadOfCoins.png", 20000);
+		super(game, billingAPI, "assets/GUI/Shop/Coins/ABoatLoadOfCoins.png", 15000);
 	}
 	
 	@Override
 	public String name() {
-		return "A Shitload Of Coins";
+		return "A Ton Of Coins";
 	}
 	
 	@Override
@@ -20,6 +20,6 @@ public class LargeCoinPurchase extends JBSCoinPurchase {
 
 	@Override
 	protected String sku() {
-		return "0";
+		return "large_coin_purchase.cx1v5eqse3";
 	}
 }

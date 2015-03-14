@@ -5,6 +5,7 @@ import com.badlogic.gdx.Preferences;
 public class Settings {
 	
 	protected final static String
+		LAUNCHES = "NumberOfLaunches",
 		OPTED_OUT_OF_TUTORIAL = "OptedOutOfTutorial",
 		IS_MUTED = "IsMuted";
 	
@@ -23,6 +24,15 @@ public class Settings {
 	/** @return true if the User has opted to not see the tutorial. */
 	public boolean hasOptedOutOfTutorial() {
 		return preferences().getBoolean(OPTED_OUT_OF_TUTORIAL);
+	}
+	
+	public int numberOfLaunches() {
+		return preferences().getInteger(LAUNCHES);
+	}
+	
+	public void addLaunch() {
+		preferences().putInteger(LAUNCHES, numberOfLaunches() + 1);
+		save();
 	}
 	
 	/** Opt to not see the tutorial. */

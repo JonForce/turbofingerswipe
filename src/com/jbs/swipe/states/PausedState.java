@@ -48,6 +48,7 @@ public class PausedState extends OverlayState {
 	@Override
 	public void exitState() {
 		System.out.println("Exiting PausedState.");
+		game.playBackgroundMusic(true);
 	}
 	
 	@Override
@@ -93,7 +94,7 @@ public class PausedState extends OverlayState {
 			}
 			@Override
 			public void resumeLevel() {
-				unpause();
+				game.setState(levelState);
 			}
 		};
 		

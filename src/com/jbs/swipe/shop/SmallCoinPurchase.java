@@ -5,7 +5,7 @@ import com.jbs.swipe.Game;
 public class SmallCoinPurchase extends JBSCoinPurchase {
 	
 	public SmallCoinPurchase(Game game, BillingAPI billingAPI) {
-		super(game, billingAPI, "assets/GUI/Shop/Coins/AFewCoins.png", 5000);
+		super(game, billingAPI, "assets/GUI/Shop/Coins/AFewCoins.png", 3500);
 	}
 	
 	@Override
@@ -20,6 +20,6 @@ public class SmallCoinPurchase extends JBSCoinPurchase {
 	
 	@Override
 	protected String sku() {
-		return "0";
+		return "small_coin_purchase.y2x5lk9w15";
 	}
 }

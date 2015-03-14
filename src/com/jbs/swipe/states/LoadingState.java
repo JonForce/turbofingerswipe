@@ -35,7 +35,7 @@ public class LoadingState implements ApplicationState {
 		// Load all the textures from our resource directory.
 		this.loadAssetsFrom(resources);
 		
-		this.loadingScreen = new LoadingScreen(game.screenWidth(), game.screenHeight()) {
+		this.loadingScreen = new LoadingScreen(game, game.screenWidth(), game.screenHeight()) {
 			public float percentComplete() {
 				return assetManager.getProgress();
 			}

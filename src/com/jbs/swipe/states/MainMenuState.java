@@ -33,8 +33,6 @@ public abstract class MainMenuState implements ApplicationState {
 	private Vector2
 		menuCenter, // The center of the MainMenu.
 		menuSize; // The width and height of the MainMenu.
-	/** True when the MainMenu has been initialized. */
-	private boolean initialized = false;
 	
 	public MainMenuState(Game game, int width, int height) {
 		this.game = game;
@@ -46,8 +44,7 @@ public abstract class MainMenuState implements ApplicationState {
 	public void enterState() {
 		System.out.println("Entering MainMenuState.");
 		
-		if (!initialized)
-			initialize();
+		initialize();
 	}
 	
 	@Override
@@ -103,18 +100,15 @@ public abstract class MainMenuState implements ApplicationState {
 	
 	/** Create and position the MainMenu's title. */
 	private void initializeTitle() {
-		// Create the title graphic at the Menu's top-center position with the title's texture.
-		title = new Graphic(menuTopCenter(), titleTexture());
-		// Translate the title down by half of it's height to make it completely on screen.
-		title.translate(0, -title.height()/2);
-		// Translate the title down by the desired top margin.
-		title.translate(0, -TITLE_TOP_MARGIN);
+		// Create the title graphic at its position with the title's texture.
+		title = new Graphic(new Vector2(), titleTexture());
+		title.setPosition(initialTitlePosition());
 	}
 	
 	/** Create and position the MainMenu's StartButton. */
 	private void initializeStartButton() {
-		// Create the StartButton at the position of the Title with the specified scale.
-		startButton = new StartButton(game, new Vector2(title.x(), title.y()), START_BUTTON_SCALE) {
+		// Create the StartButton at its position with the specified scale.
+		startButton = new StartButton(game, new Vector2(), START_BUTTON_SCALE) {
 			@Override
 			public void onTrigger() {
 				exitMainMenu();
@@ -127,24 +121,38 @@ public abstract class MainMenuState implements ApplicationState {
 					.slideGraphicOffscreen(SLIDE_DURATION, Direction.LEFT, title);
 			}
 		};
-		// Translate the StartButton down by half the button's height to align it's top edge with the title's center.
-		startButton.translate(0, -startButton.height()/2);
-		// Translate the StartButton down by half the title's height to align it's top edge with the title's bottom edge.
-		startButton.translate(0, -title.height()/2);
-		// Translate the StartButton down by the desired top margin.
-		startButton.translate(0, -START_BUTTON_TOP_MARGIN);
+		startButton.setPosition(initialStartButtonPosition().x, initialStartButtonPosition().y);
 	}
 	
 	private void initializeShopButton() {
-		shopButton = new ShopButton(game, new Vector2(startButton.x(), startButton.y()));
+		shopButton = new ShopButton(game, new Vector2());
 		// Scale the ShopButton down.
 		shopButton.scale(7/10f);
-		// Translate the ShopButton right to get out of the StartButton's way.
-		shopButton.translate(startButton.width()/2 + shopButton.width()/2, -startButton.height() / 4);
+		shopButton.setPosition(initialShopButtonPosition().x, initialStartButtonPosition().y);
 	}
 	
 	/** Create and position the MainMenu's background. */
 	private void initializeBackground() {
 		background = new Graphic(menuCenter, menuSize, backgroundTexture());
+	}
+	
+	private Vector2 initialTitlePosition() {
+		return menuTopCenter().add(0, -title.height()/2).add(0, -TITLE_TOP_MARGIN);
+	}
+	
+	private Vector2 initialStartButtonPosition() {
+		return initialTitlePosition()
+				// Translate the StartButton down by half the button's height to align it's top edge with the title's center.
+				.add(0, -startButton.height()/2)
+				// Translate the StartButton down by half the title's height to align it's top edge with the title's bottom edge.
+				.add(0, -title.height()/2)
+				// Translate the StartButton down by the desired top margin.
+				.add(0, -START_BUTTON_TOP_MARGIN);
+	}
+	
+	private Vector2 initialShopButtonPosition() {
+		return initialStartButtonPosition()
+				// Translate the ShopButton right to get out of the StartButton's way.
+				.add(startButton.width()/2 + shopButton.width()/2, -startButton.height() / 4);
 	}
 }

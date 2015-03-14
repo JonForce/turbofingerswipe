@@ -13,9 +13,11 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.GraphicAccessor;
+import com.jbs.swipe.gui.TipWindow;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.tiles.Direction;
 import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 import com.jbs.swipe.tiles.TileAccessor;
 
 public class ArcadeTutorialState extends TutorialState {
@@ -66,8 +68,6 @@ public class ArcadeTutorialState extends TutorialState {
 	
 	@Override
 	public void exitState() {
-		System.out.println("Exiting ArcadeTutorialState.");
-		
 		super.exitState();
 		super.reset();
 		killAllTweens();
@@ -86,17 +86,25 @@ public class ArcadeTutorialState extends TutorialState {
 	public void renderTo(SpriteBatch batch) {
 		super.renderTo(batch);
 		
-		if (gameOverIsVisible)
-			gameOverLogo.renderTo(batch);
-		
-		if (demoTilesAreVisible) {
-			bottomDemoTile().renderTo(batch);
-			topDemoTile().renderTo(batch);
-			demoTile().renderTo(batch);
+		if (gameOverIsVisible) {
+			game.beginIODChange(batch, 3);
+				gameOverLogo.renderTo(batch);
+			game.endIODChange(batch, 3);
 		}
 		
-		if (fingerIsVisible)
-			finger.renderTo(batch);
+		if (demoTilesAreVisible) {
+			game.beginIODChange(batch, 3.5f);
+				bottomDemoTile().renderTo(batch);
+				topDemoTile().renderTo(batch);
+				demoTile().renderTo(batch);
+			game.endIODChange(batch, 3.5f);
+		}
+		
+		if (fingerIsVisible) {
+			game.beginIODChange(batch, 4f);
+				finger.renderTo(batch);
+			game.endIODChange(batch, 4f);
+		}
 		
 		gotItButton.renderTo(batch);
 	}
@@ -119,6 +127,10 @@ public class ArcadeTutorialState extends TutorialState {
 			buildSecondTipScene(1000f);
 		} else if (tip == 2) {
 			buildThirdTipScene(130);
+		} else if (tip == 3) {
+			buildFourthTipScene();
+		} else if (tip == 4) {
+			buildFithTipScene();
 		}
 	}
 	
@@ -242,6 +254,77 @@ public class ArcadeTutorialState extends TutorialState {
 			.setCallback(callback);
 	}
 	
+	private void buildFourthTipScene() {
+		gameOverIsVisible = false;
+		demoTilesAreVisible = true;
+		fingerIsVisible = false;
+		game.tweenManager().killAll();
+		resetTiles();
+		demoTile().changeDirection();
+		
+		final float
+			swapStateInterval = 500f,
+			gameOverDuration = 1500f;
+		
+		final TweenCallback advanceTileState = new TweenCallback() {
+			@Override
+			public void onEvent(int type, BaseTween<?> source) {
+				if (demoTile().tileState() == TileState.EXPIRED) {
+					demoTile().setState(TileState.BLUE);
+					gameOverIsVisible = false;
+					demoTilesAreVisible = true;
+				} else if (demoTile().tileState() == TileState.RED) {
+					demoTile().setState(TileState.EXPIRED);
+					gameOverIsVisible = true;
+					demoTilesAreVisible = false;
+					delayEvent(this, gameOverDuration);
+					return;
+				} else if (demoTile().tileState() == TileState.ORANGE)
+					demoTile().setState(TileState.RED);
+				else if (demoTile().tileState() == TileState.YELLOW)
+					demoTile().setState(TileState.ORANGE);
+				else if (demoTile().tileState() == TileState.BLUE)
+					demoTile().setState(TileState.YELLOW);
+				
+				delayEvent(this, swapStateInterval);
+			}
+		};
+		advanceTileState.onEvent(0, null);
+	}
+	
+	private void buildFithTipScene() {
+		gameOverIsVisible = false;
+		demoTilesAreVisible = true;
+		fingerIsVisible = false;
+		game.tweenManager().killAll();
+		resetTiles();
+		
+		final float
+			expansionDuration = 1000f,
+			comboSwipeDelay= 1000f,
+			comboSwipeDuration = 750f;
+		
+		for (int i = 0; i != demoTiles.length; i++) {
+			demoTiles[i].setDirection(Direction.LEFT);
+			Tween.to(demoTiles[i], TileAccessor.POSITION_TWEEN, expansionDuration)
+				.ease(Linear.INOUT)
+				.target(demoTile().x() + (i - 1)*100, demoTile().y())
+				.start(game.tweenManager());
+		}
+		
+		final TweenCallback doComboSwipe = new TweenCallback() {
+			@Override
+			public void onEvent(int type, BaseTween<?> source) {
+				finger.setPosition(demoTiles[0].x() + 75, demoTiles[0].y());
+				
+//				swipeTile(demo)
+				
+				delayEvent(this, comboSwipeDelay);
+			}
+		};
+		delayEvent(doComboSwipe, expansionDuration);
+	}
+	
 	private void delayEvent(TweenCallback callback, float delay) {
 		Tween.call(callback).delay(delay).start(game.tweenManager());
 	}
@@ -250,13 +333,19 @@ public class ArcadeTutorialState extends TutorialState {
 	 * Initialize the Tutorial's tip Graphics.
 	 */
 	private void initializeTips() {
-		tips = new Graphic[3];
-		for (int i = 0; i != tips.length; i ++) {
+		tips = new Graphic[5];
+		for (int i = 0; i != 3; i ++) {
 			// Create the tip-Graphic.
 			tips[i] = new Graphic(game.screenCenter(), game.getTexture(TIP_SOURCES[i]));
 			// Translate the Tip down and to the left.
 			tips[i].translate(-tips[i].width()/4, -tips[i].height()/2);
 		}
+		
+		tips[3] = new TipWindow(game, game.screenCenter(), new String[] { "You only have", "a short time to", "swipe, so hurry!"});
+		tips[3].translate(-tips[3].width()/4, -tips[3].height()/2);
+		
+		tips[4] = new TipWindow(game, game.screenCenter(), new String[] { "You can swipe", "multiple tiles", "at once!"});
+		tips[4].translate(-tips[3].width()/4, -tips[3].height()/2);
 	}
 	
 	/**
@@ -355,7 +444,7 @@ public class ArcadeTutorialState extends TutorialState {
 	
 	/**
 	 * Reset the position, scale, and translation-targets of all the Tiles.
-	 * Also kills all animations assosiated with all of the Tiles.
+	 * Also kills all animations associated with all of the Tiles.
 	 */
 	private void resetTiles() {
 		for (int i = 0; i != demoTiles.length; i ++) {

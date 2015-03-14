@@ -7,22 +7,24 @@ public class Swipe {
 	
 	private Vector2 origin;
 	private InputProxy input;
-	private boolean expired = false;
+	private boolean expired = false, comboSwipe;
 	private float maxMagnitude;
 	private final int swipeID;
 	
-	public Swipe(InputProxy input, int swipeID, Vector2 origin, float maxMagnitude) {
+	public Swipe(InputProxy input, int swipeID, boolean comboSwipe, float maxMagnitude) {
 		if (!input.isTouched())
 			throw new RuntimeException("Input is not touched, Swipe cannot be constructed.");
 		if (maxMagnitude <= 0)
 			throw new RuntimeException("maxMagnitude is <= 0, Swipe cannot be constructed.");
+		
 		this.input = input;
 		this.swipeID = swipeID;
-		this.origin = origin;
+		this.comboSwipe = comboSwipe;
+		this.origin = positionOf(input);
 		this.maxMagnitude = maxMagnitude;
 	}
 	
-	/*
+	/**
 	 * Expire the swipe if the input is no longer touched.
 	 */
 	public void updateExpiration() {
@@ -30,7 +32,7 @@ public class Swipe {
 			expire();
 	}
 	
-	/*
+	/**
 	 * Invalidate the swipe.
 	 */
 	public final void expire() {
@@ -40,14 +42,14 @@ public class Swipe {
 	
 	public void onExpire() { }
 	
-	/*
+	/**
 	 * @return true if the Swipe has expired.
 	 */
 	public boolean expired() {
 		return expired;
 	}
 	
-	/*
+	/**
 	 * @return true if the Swipe's angle is equal to the required angle with
 	 * a tolerance of 'toleranceDegrees'. Check is inclusive.
 	 */
@@ -64,47 +66,52 @@ public class Swipe {
 		return angle >= minimumAngle && angle <= maximumAngle;
 	}
 	
-	/*
+	/**
 	 * @return the angle of the swipe relative to the positive x-axis
 	 * (Counterclockwise) in degrees.
 	 */
 	public float swipeAngle() {
-		return swipe().angle();
+		return asVector().angle();
 	}
 	
-	/*
+	/**
 	 * @return the Swipe's magnitude.
 	 */
 	public float magnitude() {
 		return origin.dst(inputPosition());
 	}
 	
-	/*
+	/**
 	 * @return the Swipe's origin, or start.
 	 */
 	public Vector2 origin() {
 		return origin;
 	}
 	
-	/*
+	/** @return true if this is a combo swipe. */
+	public boolean isComboSwipe() {
+		return this.comboSwipe;
+	}
+	
+	/**
 	 * @return the position of the Swipe's input.
 	 */
 	public Vector2 inputPosition() {
 		return positionOf(input);
 	}
 	
-	protected final Vector2 swipe() {
+	protected final Vector2 asVector() {
 		return differenceOf(origin, positionOf(input));
 	}
 	
-	/*
+	/**
 	 * @return a new Vector2 constructed with the input's x and y screen coordinates.
 	 */
 	protected final Vector2 positionOf(InputProxy input) {
 		return new Vector2(input.getX(swipeID), input.getY(swipeID));
 	}
 	
-	/*
+	/**
 	 * @return vectorB - vectorA
 	 */
 	protected final Vector2 differenceOf(Vector2 vectorA, Vector2 vectorB) {

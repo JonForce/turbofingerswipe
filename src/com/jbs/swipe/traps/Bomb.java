@@ -15,8 +15,8 @@ import com.jbs.swipe.Game;
 import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.effects.Explosion;
 import com.jbs.swipe.effects.SmallFlame;
-import com.jbs.swipe.tiles.SwipeListener.Event;
 import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 
 public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 	
@@ -122,6 +122,11 @@ public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 	protected void blowTargetsAwayFrom(Explosion explosion, SwipeTile... targets) {
 		// For each Tile to blow away,
 		for (final SwipeTile target : targets) {
+			// If the target is invisible,
+			if (target.opacity() == 0)
+				// Dont blow it up.
+				continue;
+			
 			final float
 				// Establish the distance the Tile is from the explosion.
 				DELTA_X = explosion.x() - target.x(),
@@ -144,10 +149,12 @@ public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 				.get().setCallback(new TweenCallback() {
 					// When the animation is complete,
 					public void onEvent(int type, BaseTween<?> source) {
-						// Notify the Tile's listener that the Tile was correctly swipe (so the player gets points)
-						target.swipeListener().recieveEvent(target, Event.TILE_CORRECTLY_SWIPED);
-						// and that the Tile is finished.
-						target.swipeListener().recieveEvent(target, Event.TILE_FINISHED);
+						if (target.tileState() != TileState.EXPIRED && target.tileState() != TileState.FINISHED) {
+							// Notify the Tile's listener that the Tile was correctly swipe (so the player gets points)
+							target.setState(TileState.CORRECTLY_SWIPED, false);
+							// and that the Tile is finished.
+							target.setState(TileState.FINISHED);
+						}
 					}
 				});
 		}
@@ -160,12 +167,12 @@ public class Bomb extends Trap<SwipeTile> implements Renderable, Updatable {
 	
 	@Override
 	public int cost() {
-		return 1500;
+		return 1000;
 	}
 	
 	@Override
 	public int trapsPerPurchase() {
-		return 5;
+		return 10;
 	}
 }
 

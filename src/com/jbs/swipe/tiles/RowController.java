@@ -66,13 +66,13 @@ public class RowController {
 	/* Expand or contract the controlled Row to use the RowController's intended settings. */
 	public void update(int score) {
 		// Set the controlled Row to be of the needed width.
-		setRowSize(intendedRowWidth(score));
+		//setRowSize(intendedRowWidth(score));
 		
 		// Set the controlled Row's timeToSwipe.
 		row().setTimeToSwipe(intendedTimeToSwipe(score));
 	}
 	
-	/* Expand/Contract the the Row to be of the specified width (in Tiles). */
+	/** Expand/Contract the the Row to be of the specified width (in Tiles). */
 	public final void setRowSize(Row row, int newSize) {
 		// While the Row is not the desired size,
 		while (row.numberOfTiles() != newSize)
@@ -85,15 +85,15 @@ public class RowController {
 				// Expand the Row to be one Tile larger.
 				row.expand();
 	}
-	/* Expand/Contract the controlled Row to be of the specified width (in Tiles). */
+	/** Expand/Contract the controlled Row to be of the specified width (in Tiles). */
 	public final void setRowSize(int newSize) {	setRowSize(this.row(), newSize); }
 	
-	/* @return the controlled Row. */
+	/** @return the controlled Row. */
 	public final Row row() {
 		return this.row;
 	}
 	
-	/* Compute the width of the Row controlled by the RowController based on
+	/** Compute the width of the Row controlled by the RowController based on
 	 * the specified score. */
 	protected int intendedRowWidth(int score) {
 		if (score < 0)
@@ -112,7 +112,7 @@ public class RowController {
 		return width;
 	}
 	
-	/* Compute the amount of time the player should have to swipe each of the Row's tiles before
+	/** Compute the amount of time the player should have to swipe each of the Row's tiles before
 	 * they expire. */
 	protected int intendedTimeToSwipe(int score) {
 		if (score < 0)

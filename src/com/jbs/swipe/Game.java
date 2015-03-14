@@ -13,12 +13,12 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
-import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.io.AudioProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.shop.DefaultBillingAPI;
 import com.jbs.swipe.shop.HugeCoinPurchase;
 import com.jbs.swipe.shop.LargeCoinPurchase;
@@ -30,7 +30,6 @@ import com.jbs.swipe.shop.TrapPurchase;
 import com.jbs.swipe.states.GameModeSelectionState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
-import com.jbs.swipe.states.PausedState;
 import com.jbs.swipe.tiles.SwipeTile;
 import com.jbs.swipe.tiles.TileAccessor;
 import com.jbs.swipe.traps.Bomb;
@@ -62,11 +61,7 @@ public class Game extends Application {
 	private LoadingState loadingState;
 	private MainMenuState mainMenuState;
 	private GameModeSelectionState gameModeSelectionState;
-	private LevelState levelState;
 	private ShopState shopState;
-	
-	/** The state to return to when the Game is resumed. */
-	private ApplicationState returnState;
 	
 	private long
 		lastRenderTime;
@@ -142,9 +137,6 @@ public class Game extends Application {
 		// If we're in a Level, pause it.
 		if (this.applicationState() instanceof LevelState && this.isCreated())
 			((LevelState) applicationState()).pause();
-		
-		// Set the state that the Game will return to when resumed.
-		//returnState = this.applicationState();
 	}
 	
 	/** Start the Level and play the Game's background music.
@@ -155,8 +147,6 @@ public class Game extends Application {
 		if (loadingState().percentComplete() == 1f)
 			// Resume the background music.
 			playBackgroundMusic(true); // True because the background Music should be looped.
-		
-		//setState(returnState);
 	}
 	
 	@Override
@@ -228,11 +218,6 @@ public class Game extends Application {
 		return created;
 	}
 	
-//	/** @return true if the Game is in it's MainMenuState. */
-//	public final boolean isAtMainMenu() {
-//		return (this.applicationState() == mainMenuState());
-//	}
-	
 	/** @return the Game's Screen's virtual width. */
 	public final int screenWidth() {
 		return screen().virtualWidth();
@@ -286,6 +271,14 @@ public class Game extends Application {
 		user = new User(DEFAULT_USER_ID, prefs);
 		settings = new Settings(prefs);
 		
+		
+		
+		settings.optIntoTutorial();
+		settings.preferences().putInteger(Settings.LAUNCHES, 0);
+		
+		
+		
+		
 		// Mute the Audio if it was muted the last time the Game exited.
 		if (settings.isMuted())
 			audio().mute();
@@ -317,9 +310,20 @@ public class Game extends Application {
 		if (this.mainMenuState == null)
 			// Create the state with our Game's AssetManager and Screen.
 			mainMenuState = new MainMenuState(this, screen().virtualWidth(), screen().virtualHeight()) {
+//				final LevelState level = new ArcadeModeEasy(Game.this);
 				@Override
 				protected void exitMainMenu() {
+					settings.addLaunch();
+					if (settings.numberOfLaunches() == 1) {
+						user.setStock(new Bomb(Game.this), 10);
+						user.setStock(new DarkHole(Game.this), 5);
+					}
+					
 					setState(gameModeSelectionState());
+					
+//					setState(level);
+//					if (level.initialized())
+//						level.restart();
 				}
 		};
 		
@@ -347,10 +351,9 @@ public class Game extends Application {
 			shopState.addPurchase(new LargeCoinPurchase(this, billingAPI));
 			shopState.addPurchase(new SmallCoinPurchase(this, billingAPI));
 			shopState.addPurchase(new TinyCoinPurchase(this, billingAPI));
+			
 			shopState.addPurchase(new TrapPurchase(new Bomb(this)));
 			shopState.addPurchase(new TrapPurchase(new DarkHole(this)));
-			
-			user.addCoins(100);
 		}
 		
 		return shopState;

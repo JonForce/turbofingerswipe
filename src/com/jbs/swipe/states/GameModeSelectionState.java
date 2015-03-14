@@ -15,6 +15,8 @@ import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.levels.normal.NormalMode;
 import com.jbs.swipe.levels.puzzle.PuzzleMode;
+import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 
 public final class GameModeSelectionState implements ApplicationState {
 	

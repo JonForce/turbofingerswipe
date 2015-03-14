@@ -40,11 +40,11 @@ public class Score implements Renderable {
 		return count;
 	}
 	
-	public final void increment() {
+	public void increment() {
 		count ++;
 	}
 	
-	public final void decrement() {
+	public void decrement() {
 		count --;
 	}
 	

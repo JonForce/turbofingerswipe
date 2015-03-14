@@ -19,6 +19,10 @@ public final class TouchManager {
 		this.previousTouchState = new boolean[maxTouches];
 	}
 	
+	public boolean hasListener(TouchListener listener) {
+		return touchListeners.contains(listener);
+	}
+	
 	/**
 	 * Clear the TouchManager's TouchListener list.
 	 */

@@ -13,10 +13,11 @@ import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
-import com.jbs.swipe.tiles.SwipeListener;
+import com.jbs.swipe.tiles.TileListener;
 import com.jbs.swipe.tiles.SwipeTile;
+import com.jbs.swipe.tiles.SwipeTile.TileState;
 
-public abstract class PuzzleMode extends LevelState implements SwipeListener {
+public abstract class PuzzleMode extends LevelState implements TileListener {
 	
 	private enum Position {
 		right, top, left, bottom
@@ -28,39 +29,44 @@ public abstract class PuzzleMode extends LevelState implements SwipeListener {
 		super(game);
 	}
 	
+//	@Override
+//	public void recieveEvent(SwipeTile tile, TileEvent event) {
+//		if (event == TileEvent.TILE_FINISHED) {
+//			
+//		} else if (event == TileEvent.TILE_CORRECTLY_SWIPED) {
+//			// Increase the score.
+//			super.incrementScore();
+//			// Cease notifying the correctly-swiped tile of touch events.
+//			super.touchManager().removeListener(tile);
+//			// We dont want to hear shit anymore from this Tile.
+//			tile.setSwipeListener(null);
+//			
+//			// Define the direction to animate the Tile.
+//			final Vector2 direction = SwipeTile.createSwipe(tile.direction(), 100f);
+//			
+//			new Animator(game())
+//				// Animate the Tile in the direction it was swiped.
+//				.swipeTileAway(tile, direction, tile.arrowGreenTime())
+//				
+//				// Fade the Tile to a 0% opacity.
+//				.fadeTileAway(tile, tile.arrowGreenTime()).get().setCallback(new TweenCallback() {
+//					// Once the Tile is finished animating, and it is no longer visible,
+//					// remove it from the list of Objects to be rendered.
+//					public void onEvent(int type, BaseTween<?> source) {
+//						
+//					}
+//				});
+//			
+//		} else if (event == TileEvent.TILE_INCORRECTLY_SWIPED || event == TileEvent.TILE_EXPIRED) {
+//			System.out.println("Tile was swiped incorrectly swiped or expired.");
+//			super.touchManager().removeListener(tile);
+//			super.fail();
+//		}
+//	}
+	
 	@Override
-	public void recieveEvent(SwipeTile tile, Event event) {
-		if (event == Event.TILE_FINISHED) {
-			
-		} else if (event == Event.TILE_CORRECTLY_SWIPED) {
-			// Increase the score.
-			super.incrementScore();
-			// Cease notifying the correctly-swiped tile of touch events.
-			super.touchManager().removeListener(tile);
-			// We dont want to hear shit anymore from this Tile.
-			tile.setSwipeListener(null);
-			
-			// Define the direction to animate the Tile.
-			final Vector2 direction = SwipeTile.createSwipe(tile.direction(), 100f);
-			
-			new Animator(game())
-				// Animate the Tile in the direction it was swiped.
-				.swipeTileAway(tile, direction, tile.arrowGreenTime())
-				
-				// Fade the Tile to a 0% opacity.
-				.fadeTileAway(tile, tile.arrowGreenTime()).get().setCallback(new TweenCallback() {
-					// Once the Tile is finished animating, and it is no longer visible,
-					// remove it from the list of Objects to be rendered.
-					public void onEvent(int type, BaseTween<?> source) {
-						
-					}
-				});
-			
-		} else if (event == Event.TILE_INCORRECTLY_SWIPED || event == Event.TILE_EXPIRED) {
-			System.out.println("Tile was swiped incorrectly swiped or expired.");
-			super.touchManager().removeListener(tile);
-			super.fail();
-		}
+	public void recieveTileStateChange(SwipeTile tile, TileState oldState, TileState newState) {
+		
 	}
 	
 	@Override
@@ -93,11 +99,6 @@ public abstract class PuzzleMode extends LevelState implements SwipeListener {
 	}
 	
 	@Override
-	protected void start() {
-		
-	}
-	
-	@Override
 	protected void reset() {
 		
 	}
@@ -123,8 +124,6 @@ public abstract class PuzzleMode extends LevelState implements SwipeListener {
 		tile.setScale(.5f, .5f);
 		tile.setPosition(POSITION.x, POSITION.y);
 		tile.setSwipeListener(this);
-		
-		super.touchManager().addListener(tile);
 		
 		return tile;
 	}
