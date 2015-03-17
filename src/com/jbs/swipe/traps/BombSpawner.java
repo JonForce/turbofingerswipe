@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
-import com.jbs.framework.rendering.Renderable;
-import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.levels.LevelState;
 

@@ -9,6 +9,7 @@ import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
+import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
@@ -54,8 +55,9 @@ public class ArcadeTutorialState extends TutorialState {
 	/**
 	 * Create the TutorialState for the Arcade game-mode.
 	 */
-	public ArcadeTutorialState(Game game) {
+	public ArcadeTutorialState(Game game, ApplicationState exitState) {
 		super(game);
+		this.setExitState(exitState);
 	}
 	
 	@Override

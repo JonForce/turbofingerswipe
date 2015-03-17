@@ -12,10 +12,11 @@ public class Swipe {
 	private final int swipeID;
 	
 	public Swipe(InputProxy input, int swipeID, boolean comboSwipe, float maxMagnitude) {
-		if (!input.isTouched())
-			throw new RuntimeException("Input is not touched, Swipe cannot be constructed.");
-		if (maxMagnitude <= 0)
-			throw new RuntimeException("maxMagnitude is <= 0, Swipe cannot be constructed.");
+		//Really? do you really like crashing the game for no reason?
+		//if (!input.isTouched())
+		//	throw new RuntimeException("Input is not touched, Swipe cannot be constructed.");
+		//if (maxMagnitude <= 0)
+		//	throw new RuntimeException("maxMagnitude is <= 0, Swipe cannot be constructed.");
 		
 		this.input = input;
 		this.swipeID = swipeID;

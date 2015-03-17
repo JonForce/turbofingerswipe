@@ -131,9 +131,7 @@ public final class NormalMode extends LevelState implements TileListener {
 	
 	@Override
 	protected TutorialState createTutorial() {
-		TutorialState tutorial = new ArcadeTutorialState(game());
-		tutorial.setExitState(this);
-		return tutorial;
+		return new ArcadeTutorialState(game(), this);
 	}
 	
 	@Override

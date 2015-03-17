@@ -228,4 +228,12 @@ public class Animator {
 					}
 				});
 	}
+
+	public Animator tweenGraphicTo(Graphic graphic, Vector2 position, float time) {
+		tweens.add(Tween.to(graphic, GraphicAccessor.POSITION_TWEEN, time)
+				.target(position.x,position.y)
+				.ease(Quad.IN)
+				.start(game.tweenManager()));
+		return this;
+	}
 }

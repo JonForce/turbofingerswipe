@@ -1,10 +1,14 @@
 package com.jbs.swipe.states;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.TextureLoader.TextureParameter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
@@ -26,8 +30,8 @@ public class LoadingState implements ApplicationState {
 		// Assert 'resources' is exists and is a directory.
 		if (!resources.exists())
 			throw new RuntimeException("Error in LoadingState constructor : Resource folder not found at \"" + resources.path() + "\"");
-		if (!resources.isDirectory())
-			throw new RuntimeException("Error in LoadingState constructor : \"" + resources.path() + "\" exists, but is not a directory");
+		//if (!resources.isDirectory())
+		//	throw new RuntimeException("Error in LoadingState constructor : \"" + resources.path() + "\" exists, but is not a directory");
 		
 		// Set our LoadingState's AssetManager and exit-state to the constructor data.
 		this.assetManager = assetManager;
@@ -98,10 +102,7 @@ public class LoadingState implements ApplicationState {
 	}
 	
 	/**
-	 * If the resource is a texture, add it to the LoadingState's AssetManager's
-	 * loading queue. If it is a directory, add all textures within all of the
-	 * child directories to the LoadingState's AssetManager's loading queue.
-	 * 
+	 * Add all assets from an resource file pointed by resource to the AssetManagers queue.
 	 * Supported Texture file extensions are : .png, .jpeg, and .jpg
 	 * Supported Music file extensions are : .mp3
 	 * Supported Sound file extendions are : .wav
@@ -109,25 +110,37 @@ public class LoadingState implements ApplicationState {
 	 * loading queue and instead prints a warning in the console.
 	 */
 	public void loadAssetsFrom(FileHandle resource) {
-		// If the file handle points to a directory.
-		if (resource.isDirectory())
-			// For each child file or directory in our parent directory.
-			for (FileHandle child : resource.list())
-				// Recurse this method with the child resource.
-				loadAssetsFrom(child);
-		// The resource is a file.
-		else
+		
+		String[] resourceLines = resource.readString().split("\r\n");
+		for(int i=0;i<resourceLines.length;i++) {
+			String path = resourceLines[i];
+			// the file doesn't exist, so we tell them about it and continue onto the next.
+			if(!Gdx.files.internal(path).exists()) {
+				System.err.println("Asset at path: "+path+" does not exist!");
+				continue;
+			}
 			// If the file has a Texture file extension,
-			if (resource.extension().equals("png") || resource.extension().equals("jpg") || resource.extension().equals("jpeg"))
-				assetManager.load(resource.path(), Texture.class);
-			// If the file has a Music file extension,
-			else if (resource.extension().equals("mp3"))
-				assetManager.load(resource.path(), Music.class);
-			// If the file has a Sound file extension,
-			else if (resource.extension().equals("wav"))
-				assetManager.load(resource.path(), Sound.class);
-			else
+			if (path.endsWith("png") || path.endsWith("jpg") || path.endsWith("jpeg")) {
+				TextureParameter texParams = new TextureParameter();
+				texParams.minFilter = texParams.magFilter = TextureFilter.Linear; //lets make smooth textures the default yay!
+				texParams.genMipMaps = false; //we aren't in need of mip maps so lets free up some memory.
+				assetManager.load(path, Texture.class, texParams);
+			}
+			else if (path.endsWith("mp3"))
+				assetManager.load(path, Music.class);
+			else if (path.endsWith("wav"))
+				assetManager.load(path, Sound.class);
+			else if (path.endsWith("fnt"))
+				assetManager.load(path, BitmapFont.class);
+			//else if (path.endsWith("fx"))
+			//	assetManager.load(path, ParticleEffect.class);
+			else {
 				// The file does not have a valid file extension, alert the user via the console.
-				System.out.println("LoadingState could not load texture \"" + resource.name() + "\", unknown file extension.");
+				System.out.println("LoadingState could not load asset \"" + resource.name() + "\", unknown file extension.");
+				continue;
+			}
+			System.out.println("Successfully loaded resource: "+path);
+		}
+		
 	}
 }

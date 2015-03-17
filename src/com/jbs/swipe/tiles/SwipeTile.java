@@ -1,13 +1,11 @@
 package com.jbs.swipe.tiles;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -18,7 +16,6 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
-import com.jbs.swipe.TouchListener;
 import com.jbs.swipe.effects.Animator;
 
 public class SwipeTile implements Renderable {
@@ -144,8 +141,8 @@ public class SwipeTile implements Renderable {
 			}
 		};
 		
+		this.setAngle(swipeRequirement.angle());
 		this.timeToSwipe = timeToSwipe;
-		this.setSwipeRequirement(swipeRequirement);
 		
 		this.scale(DEFAULT_SCALE);
 		
@@ -165,6 +162,17 @@ public class SwipeTile implements Renderable {
 	
 	public SwipeTile(Game game, float swipeTime) {
 		this(game, swipeTime, randomDirection());
+	}
+	
+	/**
+	 * Pretty much the only method you need to call to set the arrows angle and requirement
+	 * note: we don't have to super impose silly restrictions on the arrow directions.
+	 * @param angle in degrees
+	 */
+	void setAngle(float angle) {
+		arrow.setRotation(angle);
+		requiredSwipeDirection = angle;
+		requiredSwipeMagnitude = DEFAULT_SWIPE_MAGNITUDE;
 	}
 
 	@Override
@@ -444,8 +452,10 @@ public class SwipeTile implements Renderable {
 	/** @return the rotation of the SwipeTile in degrees. */
 	public final float rotation() {
 		// Throw an exception if we encounter unexpected behavior in STRICT mode.
-		if (game.IS_STRICT && tile.rotation() != arrow.rotation())
-			throw new RuntimeException("Tile's rotation != arrow's rotation!");
+		//who cares if the tiles rotation is not the same as the back button.. the back button doesn't rotate
+		//so this would always be true
+		//if (game.IS_STRICT && tile.rotation() != arrow.rotation())
+		//	throw new RuntimeException("Tile's rotation != arrow's rotation!");
 		
 		return this.tile.rotation();
 	}
@@ -566,6 +576,8 @@ public class SwipeTile implements Renderable {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
 	}
 	
+	//not used locally you must have moved it out... TODO: cleanup when confirmed.
+	/*
 	private boolean checkAngle(float angle, float requiredAngle, float toleranceDegrees) {
 		// The minimum angle of the swipe required to return true.
 		float minimumAngle = requiredAngle - toleranceDegrees;
@@ -577,6 +589,7 @@ public class SwipeTile implements Renderable {
 		// and less than the maximum angle (Inclusively).
 		return angle >= minimumAngle && angle <= maximumAngle;
 	}
+	*/
 	
 	/**
 	 * @return a normalized Vector2 that represents a swipe with a magnitude of
@@ -599,18 +612,9 @@ public class SwipeTile implements Renderable {
 		// The head of the arrow's source is the same regardless of direction.
 		String header = "assets/GUI/Arrows/";
 		// The footer of the file depends on whether we are retrieving the green or grey arrow.
-		String footer = green? "Correct.png" : "Incorrect.png";
+		String footer = !green? "arrow.png" : "arrowcorrect.png";
 		
-		if (direction == Direction.RIGHT)
-			return game.getTexture(Gdx.files.internal(header + "Right/" + footer));
-		else if (direction == Direction.UP)
-			return game.getTexture(Gdx.files.internal(header + "Up/" + footer));
-		else if (direction == Direction.LEFT)
-			return game.getTexture(Gdx.files.internal(header + "Left/" + footer));
-		else if (direction == Direction.DOWN)
-			return game.getTexture(Gdx.files.internal(header + "Down/" + footer));
-		else
-			throw new RuntimeException("Error in SwipeTile.getArrow : Unknown direction " + direction);
+		return game.getTexture(header+footer);
 	}
 	
 	/** @return a random Direction object. */
