@@ -18,10 +18,10 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
+import com.jbs.swipe.shop.BillingAPI;
 import com.jbs.swipe.shop.DefaultBillingAPI;
 import com.jbs.swipe.shop.HugeCoinPurchase;
 import com.jbs.swipe.shop.LargeCoinPurchase;
-import com.jbs.swipe.shop.BillingAPI;
 import com.jbs.swipe.shop.ShopState;
 import com.jbs.swipe.shop.SmallCoinPurchase;
 import com.jbs.swipe.shop.TinyCoinPurchase;
@@ -243,7 +243,7 @@ public class Game extends Application {
 	
 	/** Initialize the Game's FileHandles. */
 	protected void initializeFileHandles() {
-		PATH_TO_ASSETS = Gdx.files.internal("assets");
+		PATH_TO_ASSETS = Gdx.files.internal("assets/res");
 		BACKGROUND_MUSIC_SOURCE = Gdx.files.internal("assets/SFX/BackgroundMusic.mp3");
 	}
 	
@@ -272,8 +272,9 @@ public class Game extends Application {
 		
 		
 		
-//		settings.optIntoTutorial();
-//		settings.preferences().putInteger(Settings.LAUNCHES, 0);
+		settings.optIntoTutorial();
+		settings.preferences().putInteger(Settings.LAUNCHES, 0);
+		
 		
 		
 		

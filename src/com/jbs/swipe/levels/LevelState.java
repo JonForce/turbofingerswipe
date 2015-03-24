@@ -6,7 +6,6 @@ import java.util.Iterator;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
-import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
@@ -16,6 +15,7 @@ import com.jbs.swipe.gui.Score;
 import com.jbs.swipe.gui.buttons.MuteButton;
 import com.jbs.swipe.gui.buttons.PauseButton;
 import com.jbs.swipe.states.GameOverState;
+import com.jbs.swipe.states.GameState;
 import com.jbs.swipe.states.OverlayState;
 import com.jbs.swipe.states.PausedState;
 import com.jbs.swipe.tiles.Direction;
@@ -25,9 +25,7 @@ import com.jbs.swipe.traps.BombSpawner;
 import com.jbs.swipe.traps.DarkHole;
 import com.jbs.swipe.traps.DarkHoleSpawner;
 
-public abstract class LevelState implements ApplicationState {
-	
-	private final Game game;
+public abstract class LevelState extends GameState {
 	
 	private Button pauseButton, muteButton;
 	
@@ -57,7 +55,7 @@ public abstract class LevelState implements ApplicationState {
 	 * Levels. The LevelState handles activities that are common across all Levels.
 	 */
 	public LevelState(Game game) {
-		this.game = game;
+		super(game);
 	}
 	
 	@Override
@@ -72,9 +70,10 @@ public abstract class LevelState implements ApplicationState {
 			// Return without initializing.
 			return;
 		}
-		
+
 		if (!initialized)
 			initialize();
+		super.enterState();
 	}
 	
 	@Override
@@ -91,7 +90,8 @@ public abstract class LevelState implements ApplicationState {
 	
 	@Override
 	public final void renderTo(SpriteBatch batch) {
-		game.background().renderTo(batch);
+		super.renderTo(batch);
+		//game.background().renderTo(batch);
 		
 		game.beginIODChange(batch, 2);
 			muteButton.renderTo(batch);

@@ -3,6 +3,7 @@ package com.jbs.swipe.gui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.rendering.Graphic;
@@ -48,8 +49,10 @@ public abstract class LoadingScreen implements Renderable {
 		
 		// Create the background Graphic at the center of our LoadingScreen with the background texture.
 		background = new Graphic(center, new Vector2(width, height), new Texture(BACKGROUND_SOURCE));
+		background.texture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		// Create the loading bar background Graphic at the center of our loadingScreen with the loading bar's bg texture.
 		emptyBar = new Graphic(center, new Texture(EMPTY_BAR_SOURCE));
+		emptyBar.texture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		
 		// Create the loading bar foreground Graphic at the center of our loadingScreen with the loading bar's foreground texture.
 		fullBar = new Graphic(center, new Texture(FULL_BAR_SOURCE)) {
@@ -67,6 +70,7 @@ public abstract class LoadingScreen implements Renderable {
 				return center.x + offset - sourceWidth/2;
 			}
 		};
+		fullBar.texture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		
 		// Create the finger that swipes the loading bar.
 		finger = new Graphic(center, new Texture(FINGER_SOURCE)) {
@@ -77,6 +81,7 @@ public abstract class LoadingScreen implements Renderable {
 				return center.x + offset - sourceWidth/2;
 			}
 		};
+		finger.texture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		
 		font.setAlignment(Font.ALIGNMENT_RIGHT);
 		fontRightBounds = new Vector2(center.x, center.y + FONT_VERTICAL_OFFSET);
@@ -85,6 +90,7 @@ public abstract class LoadingScreen implements Renderable {
 		percent = new Graphic(fontRightBounds, new Texture(PERCENT_SOURCE));
 		// Move the percent symbol right by it's half-width and up by it's half-height so it does not overlap the font.
 		percent.translate(font.digitWidth(), percent.height()/2);
+		percent.texture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 	}
 	
 	@Override

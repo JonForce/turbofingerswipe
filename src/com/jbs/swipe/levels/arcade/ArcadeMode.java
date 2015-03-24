@@ -149,9 +149,7 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 	
 	@Override
 	protected TutorialState createTutorial() {
-		ArcadeTutorialState tutorial = new ArcadeTutorialState(game());
-		tutorial.setExitState(this);
-		return tutorial;
+		return new ArcadeTutorialState(game(), this);
 	}
 	
 	/** Animate the top-Row in from the top of the screen. */

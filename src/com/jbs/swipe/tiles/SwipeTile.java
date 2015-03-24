@@ -141,8 +141,8 @@ public class SwipeTile implements Renderable {
 			}
 		};
 		
+		this.setAngle(swipeRequirement.angle());
 		this.timeToSwipe = timeToSwipe;
-		this.setSwipeRequirement(swipeRequirement);
 		
 		this.scale(DEFAULT_SCALE);
 		
@@ -162,6 +162,17 @@ public class SwipeTile implements Renderable {
 	
 	public SwipeTile(Game game, float swipeTime) {
 		this(game, swipeTime, randomDirection());
+	}
+	
+	/**
+	 * Pretty much the only method you need to call to set the arrows angle and requirement
+	 * note: we don't have to super impose silly restrictions on the arrow directions.
+	 * @param angle in degrees
+	 */
+	void setAngle(float angle) {
+		arrow.setRotation(angle);
+		requiredSwipeDirection = angle;
+		requiredSwipeMagnitude = DEFAULT_SWIPE_MAGNITUDE;
 	}
 
 	@Override
@@ -194,11 +205,13 @@ public class SwipeTile implements Renderable {
 							@Override
 							public void onExpire() {
 								if (currentSwipe.checkAngle(requiredSwipeDirection, swipeAngleTolerance)) {
-									// Set the SwipeTile to it's correctly-swiped State.
-									setState(TileState.CORRECTLY_SWIPED);
+									if (canChangeStateTo(TileState.CORRECTLY_SWIPED))
+										// Set the SwipeTile to it's correctly-swiped State.
+										setState(TileState.CORRECTLY_SWIPED);
 								} else if (!currentSwipe.isComboSwipe()) {
-									// Enter the Incorrectly swiped State.
-									setState(TileState.INCORRECTLY_SWIPED);
+									if (canChangeStateTo(TileState.INCORRECTLY_SWIPED))
+										// Enter the Incorrectly swiped State.
+										setState(TileState.INCORRECTLY_SWIPED);
 								}
 								currentSwipe = null;
 							}
@@ -438,6 +451,12 @@ public class SwipeTile implements Renderable {
 	
 	/** @return the rotation of the SwipeTile in degrees. */
 	public final float rotation() {
+		// Throw an exception if we encounter unexpected behavior in STRICT mode.
+		//who cares if the tiles rotation is not the same as the back button.. the back button doesn't rotate
+		//so this would always be true
+		//if (game.IS_STRICT && tile.rotation() != arrow.rotation())
+		//	throw new RuntimeException("Tile's rotation != arrow's rotation!");
+		
 		return this.tile.rotation();
 	}
 	
@@ -454,9 +473,21 @@ public class SwipeTile implements Renderable {
 		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
 	}
 	
+	/** @return true if the Tile can be set to the new state without conflict. */
+	public boolean canChangeStateTo(TileState newState) {
+		return !((tileState == TileState.CORRECTLY_SWIPED && newState != TileState.FINISHED) ||
+				(tileState == TileState.INCORRECTLY_SWIPED && newState != TileState.FINISHED) ||
+				tileState == newState);
+	}
+	
 	/** Set the State of the SwipeTile.
 	 * @param react Set to true if the Tile should react to its change in state. */
 	public void setState(TileState newState, boolean react) {
+		if (tileState == newState)
+			throw new RuntimeException("Cannot set a Tile to the state it is already in : " + newState);
+		if (!canChangeStateTo(newState))
+			throw new RuntimeException("Cannot set a Tile to " + newState + " when it is in it's " + tileState + " state.");
+		
 		TileState oldState = this.tileState;
 		this.tileState = newState;
 		refreshArrow();
@@ -545,6 +576,21 @@ public class SwipeTile implements Renderable {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
 	}
 	
+	//not used locally you must have moved it out... TODO: cleanup when confirmed.
+	/*
+	private boolean checkAngle(float angle, float requiredAngle, float toleranceDegrees) {
+		// The minimum angle of the swipe required to return true.
+		float minimumAngle = requiredAngle - toleranceDegrees;
+		// The maximum angle of the swipe required to return true;
+		float maximumAngle = requiredAngle + toleranceDegrees;
+		if (angle > requiredAngle + 180)
+			angle -= (requiredAngle + 360);
+		// Return true when the swipe's angle is greater than the minimum angle
+		// and less than the maximum angle (Inclusively).
+		return angle >= minimumAngle && angle <= maximumAngle;
+	}
+	*/
+	
 	/**
 	 * @return a normalized Vector2 that represents a swipe with a magnitude of
 	 * 'magnitude' and direction of either up, left, right, or down.
@@ -566,18 +612,9 @@ public class SwipeTile implements Renderable {
 		// The head of the arrow's source is the same regardless of direction.
 		String header = "assets/GUI/Arrows/";
 		// The footer of the file depends on whether we are retrieving the green or grey arrow.
-		String footer = green? "Correct.png" : "Incorrect.png";
+		String footer = !green? "arrow.png" : "arrowcorrect.png";
 		
-		if (direction == Direction.RIGHT)
-			return game.getTexture(Gdx.files.internal(header + "Right/" + footer));
-		else if (direction == Direction.UP)
-			return game.getTexture(Gdx.files.internal(header + "Up/" + footer));
-		else if (direction == Direction.LEFT)
-			return game.getTexture(Gdx.files.internal(header + "Left/" + footer));
-		else if (direction == Direction.DOWN)
-			return game.getTexture(Gdx.files.internal(header + "Down/" + footer));
-		else
-			throw new RuntimeException("Error in SwipeTile.getArrow : Unknown direction " + direction);
+		return game.getTexture(header+footer);
 	}
 	
 	/** @return a random Direction object. */

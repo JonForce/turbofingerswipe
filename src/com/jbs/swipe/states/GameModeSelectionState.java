@@ -6,7 +6,6 @@ import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
-import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Game;
@@ -15,10 +14,8 @@ import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.levels.formation.FormationMode;
 import com.jbs.swipe.levels.puzzle.PuzzleMode;
-import com.jbs.swipe.tiles.SwipeTile;
-import com.jbs.swipe.tiles.SwipeTile.TileState;
 
-public final class GameModeSelectionState implements ApplicationState {
+public final class GameModeSelectionState extends GameState {
 	
 	private static final String
 		NORMAL_TEXT = "assets/GUI/GameModeSelect/Normal.png",
@@ -28,7 +25,6 @@ public final class GameModeSelectionState implements ApplicationState {
 		PUZZLE_TEXT = "assets/GUI/GameModeSelect/Puzzle.png",
 		PUZZLE_CIRCLE = "assets/GUI/GameModeSelect/PuzzleCircle.png";
 	
-	private final Game game;
 	private final float
 		buttonMargin = 50, // The empty space in-between each button.
 		rotationAnimationDuration = 4500f,
@@ -41,14 +37,15 @@ public final class GameModeSelectionState implements ApplicationState {
 	private final Vector2 center, offscreen;
 	
 	public GameModeSelectionState(Game game) {
-		this.game = game;
+		super(game);
 		this.center = game.screenCenter();
-		this.offscreen = center.cpy().add(game.screenSize().x, 0);
+		this.offscreen = center.cpy().add(game.screenWidth(), 0);
 	}
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		game.background().renderTo(batch);
+		super.renderTo(batch);
+		//game.background().renderTo(batch);
 		
 		game.beginIODChange(batch, 3);
 			advancedButton.renderTo(batch);
@@ -74,6 +71,7 @@ public final class GameModeSelectionState implements ApplicationState {
 		
 		initialize();
 		animateIn();
+		super.enterState();
 	}
 	
 	@Override
@@ -116,6 +114,7 @@ public final class GameModeSelectionState implements ApplicationState {
 	 */
 	private void initialize() {
 		final float ROTATION_ANIMATION_DURATION = 100f;
+		initializeBackground();
 		
 		// Initialize the Advanced GameMode Button.
 		advancedButton = new Button(offscreen.cpy(), game.getTexture(ADVANCED_CIRCLE)) {

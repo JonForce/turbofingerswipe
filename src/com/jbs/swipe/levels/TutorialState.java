@@ -6,10 +6,9 @@ import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.NullState;
+import com.jbs.swipe.states.GameState;
 
-public abstract class TutorialState implements ApplicationState {
-	
-	protected final Game game;
+public abstract class TutorialState extends GameState {
 	
 	private ApplicationState exitState;
 	private int tipIndex = 0; // The index of the current tip.
@@ -19,13 +18,14 @@ public abstract class TutorialState implements ApplicationState {
 	 * The base class for a Tutorial.
 	 */
 	public TutorialState(Game game) {
-		this.game = game;
+		super(game);
 		this.exitState = new NullState();
 	}
 	
 	@Override
 	public void renderTo(SpriteBatch batch) {
-		game.background().renderTo(batch);
+		super.renderTo(batch);
+		//game.background().renderTo(batch);
 		tips()[tipIndex].renderTo(batch);
 	}
 	
@@ -39,6 +39,7 @@ public abstract class TutorialState implements ApplicationState {
 		if (!created)
 			create();
 		created = true;
+		super.enterState();
 	}
 	@Override
 	public void exitState() { }
