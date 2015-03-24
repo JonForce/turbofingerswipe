@@ -7,9 +7,8 @@ import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Pattern;
-import com.jbs.swipe.tiles.SwipeTile.TileState;
 
-public class Row implements TileListener, Renderable, Updatable {
+public class Row implements Renderable, Updatable {
 	
 	public static final int
 		DIRECTION_LEFT = -1,
@@ -20,7 +19,7 @@ public class Row implements TileListener, Renderable, Updatable {
 		DEFAULT_SCALE = .5f;
 	
 	/* The SwipeListener to notify of all the Row's SwipeTile's events. */
-	protected TileListener listener;
+	protected final TileListener listener;
 	
 	protected final Game game;
 	
@@ -46,8 +45,9 @@ public class Row implements TileListener, Renderable, Updatable {
 	private Pattern<Direction>
 		pattern; // The pattern of the Tiles.
 	
-	public Row(Game game, Vector2 center, int numberOfTiles) {
+	public Row(Game game, TileListener listener, Vector2 center, int numberOfTiles) {
 		this.game = game;
+		this.listener = listener;
 		this.center = center;
 		
 		this.numberOfTiles = numberOfTiles;
@@ -123,11 +123,6 @@ public class Row implements TileListener, Renderable, Updatable {
 	/** Set the time (in milliseconds) that the player has to swipe a SwipeTile created by the Row. */
 	public void setTimeToSwipe(int newTimeToSwipe) {
 		this.timeToSwipe = newTimeToSwipe;
-	}
-	
-	/** Set the Listener to notify of all the Row's SwipeTile's events. */
-	public void setSwipeListener(TileListener newListener) {
-		this.listener = newListener;
 	}
 	
 	/** Collapse the Row over it's n'th Tile. */
@@ -265,19 +260,6 @@ public class Row implements TileListener, Renderable, Updatable {
 	/** Expand the Row to use another SwipeTile. */
 	public final void expand() { expand(this.direction); }
 	
-	@Override
-	public void recieveTileStateChange(SwipeTile tile, TileState oldState, TileState newState) {
-		// If the Tile is finished,
-		if (newState == TileState.FINISHED) {
-			// Collapse the Row over the SwipeTile that should be removed.
-			for (int i = 0; i != numberOfTiles; i ++)
-				if (tiles[i].equals(tile))
-					collapseTile(i, direction);
-		} else
-			if (this.listener != null)
-				listener.recieveTileStateChange(tile, oldState, newState);
-	}
-	
 	public final SwipeTile[] tiles() {
 		return this.tiles;
 	}
@@ -328,7 +310,7 @@ public class Row implements TileListener, Renderable, Updatable {
 		// Set the Tile to use the specified scale.
 		tile.scale(scaleX, scaleY);
 		// Set the Tile to notify the Row of all Swipe events.
-		tile.setSwipeListener(this);
+		tile.setSwipeListener(this.listener);
 		
 		return tile;
 	}

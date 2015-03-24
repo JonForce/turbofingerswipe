@@ -1,4 +1,4 @@
-package com.jbs.swipe.levels.normal;
+package com.jbs.swipe.levels.formation;
 
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.swipe.Game;
@@ -21,6 +21,8 @@ public class TileStorm extends Formation {
 			timeToSwipeBase = 4000,
 			timeToSwipeIncrease = 700,
 			verticalSpacing = 75;
+		
+		setTranslationDamping(.1f + numberOfTiles * .0015f);
 		
 		SwipeTile[] tiles = new SwipeTile[numberOfTiles];
 		

@@ -1,4 +1,4 @@
-package com.jbs.swipe.levels.normal;
+package com.jbs.swipe.levels.formation;
 
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.swipe.Game;

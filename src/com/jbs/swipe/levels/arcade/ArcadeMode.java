@@ -40,6 +40,7 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 		if (newState == TileState.CORRECTLY_SWIPED) {
 			// Increment the correct swipe count.
 			super.score().increment();
+//			remove(tile);
 		} else if (newState == TileState.INCORRECTLY_SWIPED) {
 			final float
 				SHAKE_AMPLITUDE = 100f,
@@ -78,7 +79,11 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 						fail();
 					}
 				}, SHAKE_DURATION * 1.5f);
+		} else if (newState == TileState.FINISHED) {
+			
+			remove(tile);
 		}
+		System.out.println("NewState : " + newState);
 		
 		// Update the Rows.
 		updateRowControllers();
@@ -105,7 +110,6 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 				return;
 			}
 		}
-		throw new RuntimeException("Could not remove SwipeTile " + tile);
 	}
 	
 	@Override
@@ -235,11 +239,11 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 		this.rows = new Row[NUMBER_OF_ROWS];
 		
 		// Initialize the center Row.
-		rows[1] = new Row(game(), game().screenCenter(), initialTilesPerRow());
+		rows[1] = new Row(game(), this, game().screenCenter(), initialTilesPerRow());
 		// Initialize the bottom Row below the center Row.
-		rows[0] = new Row(game(), game().screenCenter().add(0, -rows[1].height()), initialTilesPerRow());
+		rows[0] = new Row(game(), this, game().screenCenter().add(0, -rows[1].height()), initialTilesPerRow());
 		// Initialize the top Row above the center Row.
-		rows[2] = new Row(game(), game().screenCenter().add(0, rows[1].height()), initialTilesPerRow());
+		rows[2] = new Row(game(), this, game().screenCenter().add(0, rows[1].height()), initialTilesPerRow());
 		
 		// Only the center Row is visible by default.
 		centerRow().setVisible(true);
@@ -248,7 +252,6 @@ public abstract class ArcadeMode extends LevelState implements TileListener {
 		topRow().setVisible(false);
 		
 		for (Row row : this.rows) {
-			row.setSwipeListener(this);
 			row.setPattern(new Pattern<Direction>(DEFAULT_PATTERN_LENGTH, Direction.RIGHT, Direction.UP, Direction.LEFT, Direction.DOWN));
 			row.scramblePattern();
 		}

@@ -1,13 +1,11 @@
 package com.jbs.swipe.tiles;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -18,7 +16,6 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
-import com.jbs.swipe.TouchListener;
 import com.jbs.swipe.effects.Animator;
 
 public class SwipeTile implements Renderable {
@@ -197,13 +194,11 @@ public class SwipeTile implements Renderable {
 							@Override
 							public void onExpire() {
 								if (currentSwipe.checkAngle(requiredSwipeDirection, swipeAngleTolerance)) {
-									if (canChangeStateTo(TileState.CORRECTLY_SWIPED))
-										// Set the SwipeTile to it's correctly-swiped State.
-										setState(TileState.CORRECTLY_SWIPED);
+									// Set the SwipeTile to it's correctly-swiped State.
+									setState(TileState.CORRECTLY_SWIPED);
 								} else if (!currentSwipe.isComboSwipe()) {
-									if (canChangeStateTo(TileState.INCORRECTLY_SWIPED))
-										// Enter the Incorrectly swiped State.
-										setState(TileState.INCORRECTLY_SWIPED);
+									// Enter the Incorrectly swiped State.
+									setState(TileState.INCORRECTLY_SWIPED);
 								}
 								currentSwipe = null;
 							}
@@ -443,10 +438,6 @@ public class SwipeTile implements Renderable {
 	
 	/** @return the rotation of the SwipeTile in degrees. */
 	public final float rotation() {
-		// Throw an exception if we encounter unexpected behavior in STRICT mode.
-		if (game.IS_STRICT && tile.rotation() != arrow.rotation())
-			throw new RuntimeException("Tile's rotation != arrow's rotation!");
-		
 		return this.tile.rotation();
 	}
 	
@@ -463,21 +454,9 @@ public class SwipeTile implements Renderable {
 		return Math.min(timeUntilExpiration(), MAXIMUM_GREEN_TIME);
 	}
 	
-	/** @return true if the Tile can be set to the new state without conflict. */
-	public boolean canChangeStateTo(TileState newState) {
-		return !((tileState == TileState.CORRECTLY_SWIPED && newState != TileState.FINISHED) ||
-				(tileState == TileState.INCORRECTLY_SWIPED && newState != TileState.FINISHED) ||
-				tileState == newState);
-	}
-	
 	/** Set the State of the SwipeTile.
 	 * @param react Set to true if the Tile should react to its change in state. */
 	public void setState(TileState newState, boolean react) {
-		if (tileState == newState)
-			throw new RuntimeException("Cannot set a Tile to the state it is already in : " + newState);
-		if (!canChangeStateTo(newState))
-			throw new RuntimeException("Cannot set a Tile to " + newState + " when it is in it's " + tileState + " state.");
-		
 		TileState oldState = this.tileState;
 		this.tileState = newState;
 		refreshArrow();
@@ -564,18 +543,6 @@ public class SwipeTile implements Renderable {
 	 */
 	protected final Vector2 positionOf(InputProxy input, int touchID) {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
-	}
-	
-	private boolean checkAngle(float angle, float requiredAngle, float toleranceDegrees) {
-		// The minimum angle of the swipe required to return true.
-		float minimumAngle = requiredAngle - toleranceDegrees;
-		// The maximum angle of the swipe required to return true;
-		float maximumAngle = requiredAngle + toleranceDegrees;
-		if (angle > requiredAngle + 180)
-			angle -= (requiredAngle + 360);
-		// Return true when the swipe's angle is greater than the minimum angle
-		// and less than the maximum angle (Inclusively).
-		return angle >= minimumAngle && angle <= maximumAngle;
 	}
 	
 	/**

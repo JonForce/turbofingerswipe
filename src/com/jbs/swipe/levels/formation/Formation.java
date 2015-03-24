@@ -1,4 +1,4 @@
-package com.jbs.swipe.levels.normal;
+package com.jbs.swipe.levels.formation;
 
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.swipe.Game;
@@ -9,6 +9,7 @@ import com.jbs.swipe.tiles.TileListener;
 abstract class Formation {
 	
 	protected Game game;
+	
 	private TileListener listener;
 	private float translationDamping = .1f;
 	

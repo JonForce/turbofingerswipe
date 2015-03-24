@@ -295,34 +295,60 @@ public class ArcadeTutorialState extends TutorialState {
 	private void buildFithTipScene() {
 		gameOverIsVisible = false;
 		demoTilesAreVisible = true;
-		fingerIsVisible = false;
+		fingerIsVisible = true;
 		game.tweenManager().killAll();
 		resetTiles();
 		
 		final float
 			expansionDuration = 1000f,
-			comboSwipeDelay= 1000f,
+			preSwipeDelay = 500f,
+			postSwipeDelay = 500f,
 			comboSwipeDuration = 750f;
 		
 		for (int i = 0; i != demoTiles.length; i++) {
 			demoTiles[i].setDirection(Direction.LEFT);
 			Tween.to(demoTiles[i], TileAccessor.POSITION_TWEEN, expansionDuration)
-				.ease(Linear.INOUT)
-				.target(demoTile().x() + (i - 1)*100, demoTile().y())
+				.ease(Quad.OUT)
+				.target(demoTile().x() + (i - 1)*150, demoTile().y())
 				.start(game.tweenManager());
+			scaleTile(demoTiles[i], .65f, expansionDuration);
 		}
+		
+		final TweenCallback reset = new TweenCallback() {
+			@Override
+			public void onEvent(int type, BaseTween<?> source) {
+				for (SwipeTile tile : demoTiles) {
+					game.tweenManager().killTarget(tile);
+					tile.setScale(.5f, .5f);
+					tile.setOpacity(1f);
+					tile.reset();
+					tile.setState(TileState.BLUE);
+				}
+				finger.setPosition(demoTiles[2].x() + 200, demoTiles[2].y());
+			}
+		};
 		
 		final TweenCallback doComboSwipe = new TweenCallback() {
 			@Override
 			public void onEvent(int type, BaseTween<?> source) {
-				finger.setPosition(demoTiles[0].x() + 75, demoTiles[0].y());
+				swipeTile(demoTiles[0], finger, 250, comboSwipeDuration);
 				
-//				swipeTile(demo)
+				for (int i = 0; i != demoTiles.length; i ++) {
+					final int index = i;
+					delayEvent(new TweenCallback() {
+						@Override
+						public void onEvent(int type, BaseTween<?> source) {
+							demoTiles[index].setState(TileState.CORRECTLY_SWIPED, false);
+						}
+					}, comboSwipeDuration / (i + 2) - 100);
+				}
 				
-				delayEvent(this, comboSwipeDelay);
+				delayEvent(reset, comboSwipeDuration + postSwipeDelay);
+				delayEvent(this, comboSwipeDuration + postSwipeDelay + preSwipeDelay);
 			}
 		};
-		delayEvent(doComboSwipe, expansionDuration);
+		delayEvent(reset, expansionDuration);
+		delayEvent(doComboSwipe, expansionDuration + preSwipeDelay);
 	}
 	
 	private void delayEvent(TweenCallback callback, float delay) {
@@ -452,6 +478,7 @@ public class ArcadeTutorialState extends TutorialState {
 			demoTiles[i].translate(0, tilesYOffset);
 			demoTiles[i].setScale(1, 1);
 			demoTiles[i].setTranslationTarget(null, 0);
+			demoTiles[i].setState(TileState.BLUE);
 			game.tweenManager().killTarget(demoTiles[i]);
 		}
 	}

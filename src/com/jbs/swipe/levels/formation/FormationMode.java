@@ -1,4 +1,4 @@
-package com.jbs.swipe.levels.normal;
+package com.jbs.swipe.levels.formation;
 
 import java.util.ArrayList;
 
@@ -14,15 +14,20 @@ import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.levels.TutorialState;
 import com.jbs.swipe.levels.arcade.ArcadeTutorialState;
+import com.jbs.swipe.levels.formation.TileLines.Dimension;
 import com.jbs.swipe.tiles.SwipeTile.TileState;
 import com.jbs.swipe.tiles.TileListener;
 import com.jbs.swipe.tiles.SwipeTile;
 
-public final class NormalMode extends LevelState implements TileListener {
+public final class FormationMode extends LevelState implements TileListener {
 	
 	private ArrayList<SwipeTile> tiles;
+	private Formation[] formations;
+	private int difficulty, currentFormation;
 	
-	public NormalMode(Game game) {
+	/** Formation Mode is a game mode where tiles are generated in combo-swipable formations,
+	 * making it easy for the player to rack up big combos. */
+	public FormationMode(Game game) {
 		super(game);
 	}
 	
@@ -50,7 +55,7 @@ public final class NormalMode extends LevelState implements TileListener {
 				}
 			}, SHAKE_DURATION);
 			
-			super.addScoreChange(new Vector2(tile.x(), tile.y()), -5);
+			super.addScoreChange(new Vector2(tile.x(), tile.y()), -10);
 		} else if (newState == TileState.EXPIRED) {
 			final float
 				SHAKE_AMPLITUDE = 100f,
@@ -87,15 +92,26 @@ public final class NormalMode extends LevelState implements TileListener {
 			if (tile != null)
 				tile.updateWith(input);
 		
-		if (tiles.isEmpty())
-			for (SwipeTile tile : new TileSnake(game(), this, 50).create())
-				tiles.add(tile);
+		if (tiles.isEmpty()) {
+			if (++currentFormation >= formations.length) {
+				currentFormation = 0;
+				formations = createFormations(++difficulty);
+			}
+			
+			for (SwipeTile newTile : formations[currentFormation].create())
+				tiles.add(newTile);
+		}
 	}
 	
 	@Override
 	protected void create() {
 		this.tiles = new ArrayList<SwipeTile>();
-		start();
+		this.difficulty = 1;
+		this.currentFormation = 0;
+		this.formations = createFormations(difficulty);
+		
+		for (SwipeTile newTile : formations[currentFormation].create())
+			this.tiles.add(newTile);
 	}
 	
 	@Override
@@ -110,16 +126,7 @@ public final class NormalMode extends LevelState implements TileListener {
 	
 	/** Safely remove the specified Tile from the Level. */
 	public final void remove(SwipeTile tile) {
-		if (tiles.contains(tile))
-			tiles.remove(tile);
-		else
-			throw new RuntimeException("Couldnt remove the Tile.");
-	}
-	
-	/** Start the Level. */
-	protected void start() {
-		for (SwipeTile tile : new TileBox(game(), this, 20).create())
-			tiles.add(tile);
+		tiles.remove(tile);
 	}
 	
 	@Override
@@ -139,6 +146,51 @@ public final class NormalMode extends LevelState implements TileListener {
 	@Override
 	protected String levelName() {
 		return "NormalMode";
+	}
+	
+	/** @return a sequence of Tile formations based on the given difficulty. */
+	protected Formation[] createFormations(int difficulty) {
+		if (difficulty < 1)
+			throw new RuntimeException("Difficulty must be greater than or equal to 1.");
+		if (difficulty == 1)
+			return new Formation[] {
+				new TileLines(game(), this, 18, Dimension.VERTICAL),
+				new TileLines(game(), this, 18, Dimension.HORIZONTAL),
+				new TileSpiral(game(), this, 10),
+				new TileSpiral(game(), this, 10),
+			};
+		else if (difficulty == 2)
+			return new Formation[] {
+				new TileLines(game(), this, 18, Dimension.HORIZONTAL),
+				new TileSnake(game(), this, 10),
+				new TileStorm(game(), this, 30),
+			};
+		else if (difficulty == 3)
+			return new Formation[] {
+				new TileSpiral(game(), this, 20),
+				new TileLines(game(), this, 20, Dimension.VERTICAL),
+				new TileSnake(game(), this, 20),
+			};
+		else if (difficulty == 4)
+			return new Formation[] {
+				new TileLines(game(), this, 50, Dimension.HORIZONTAL),
+				new TileSpiral(game(), this, 40),
+				new TileSnake(game(), this, 30),
+				new TileBox(game(), this, 20),
+			};
+		else if (difficulty == 5)
+			return new Formation[] {
+				new TileStorm(game(), this, 60),
+				new TileSpiral(game(), this, 50),
+			};
+		else
+			return new Formation[] {
+				new TileLines(game(), this, difficulty * 10, Dimension.HORIZONTAL),
+				new TileLines(game(), this, difficulty * 10, Dimension.VERTICAL),
+				new TileSpiral(game(), this, difficulty * 10),
+				new TileStorm(game(), this, difficulty * 10),
+				new TileSnake(game(), this, difficulty * 10),
+			};
 	}
 	
 	/** Delay the callback by the specified time in milliseconds (I think, idk). */

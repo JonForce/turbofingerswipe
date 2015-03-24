@@ -18,7 +18,6 @@ import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
-import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.shop.DefaultBillingAPI;
 import com.jbs.swipe.shop.HugeCoinPurchase;
 import com.jbs.swipe.shop.LargeCoinPurchase;
@@ -273,9 +272,8 @@ public class Game extends Application {
 		
 		
 		
-		settings.optIntoTutorial();
-		settings.preferences().putInteger(Settings.LAUNCHES, 0);
-		
+//		settings.optIntoTutorial();
+//		settings.preferences().putInteger(Settings.LAUNCHES, 0);
 		
 		
 		
