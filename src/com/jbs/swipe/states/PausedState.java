@@ -43,6 +43,8 @@ public class PausedState extends OverlayState {
 		// If the buttons are not initialized,
 		if (!buttonsInitialized())
 			createButtons();
+		
+		levelState.tweenBarOffset(new Vector2(0,-150), 300f);
 	}
 	
 	@Override

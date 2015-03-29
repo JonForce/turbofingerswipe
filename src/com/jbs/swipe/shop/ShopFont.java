@@ -25,6 +25,12 @@ public class ShopFont {
 	public void scaleToWidth( float maxWidth, String text ) {
 		setScale(maxWidth / font.getBounds(text).width);
 	}
+	public void scaleToBounds( float maxWidth, float maxHeight, String text ) {
+		TextBounds bounds = font.getBounds(text);
+		setScale(
+			Math.min(maxWidth / bounds.width, maxHeight / bounds.height)
+		);
+	}
 	public void setScale( float scale ) {
 		setScale( scale, scale );
 	}

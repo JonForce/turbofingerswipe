@@ -34,7 +34,7 @@ public abstract class CoinWindow implements Renderable {
 		final float
 			// The horizontal offset of the text.
 			leftMargin = -60f;
-		font.scaleToWidth(100f, coins()+"");
+		font.scaleToBounds(100f, 30f, coins()+"");
 		font.drawAt(batch, text, x() + leftMargin, y() + heightOf(text)/2);
 	}
 	

@@ -7,23 +7,23 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
-import com.jbs.framework.rendering.Renderable;
-import com.jbs.framework.rendering.ui.Button;
 import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.CoinWindow;
 import com.jbs.swipe.gui.Scroller;
 import com.jbs.swipe.gui.buttons.BackButton;
 import com.jbs.swipe.shop.purchases.Purchase;
-import com.jbs.swipe.states.OverlayState;
+import com.jbs.swipe.states.GameState;
 
-public class ShopState extends OverlayState {
+public class ShopState extends GameState {
 	
 	private static final String
-		WINDOW_SOURCE = "Shop/ShopWindow";
+		WINDOW_SOURCE = "Shop/ShopWindow",
+		BUBBLE0 = "Shop/bubble",
+		BUBBLE1 = "Shop/bubble0";
 	
 	private final ApplicationState subState;
-	private final Graphic window;
+	private final Graphic window,bubble0,bubble1;
 	private final CoinWindow coinWindow;
 	private final ArrayList<ItemWindow> itemWindows;
 	private final BillingAPI billingAPI;
@@ -32,7 +32,7 @@ public class ShopState extends OverlayState {
 	
 	private final float
 		// Each ItemWindow should be spaced out by n pixels.
-		itemWindowHorizontalMargin = 50;
+		itemWindowHorizontalMargin = 1024;
 	
 	/** Create the Shop control structure.
 	 * @param subState The state that the Shop should be rendered on top of. */
@@ -46,8 +46,8 @@ public class ShopState extends OverlayState {
 		
 		this.backButton = new BackButton(game, new Vector2()) {
 			final float
-				horizontalMargin = 10,
-				verticalMargin = 10;
+				horizontalMargin = 20,
+				verticalMargin = 5;
 			@Override
 			public float x() {
 				return width()/2 + horizontalMargin;
@@ -55,7 +55,7 @@ public class ShopState extends OverlayState {
 			
 			@Override
 			public float y() {
-				return game.screenHeight() - height()/2 - verticalMargin;
+				return height()/2 + verticalMargin;
 			}
 		};
 		
@@ -65,7 +65,7 @@ public class ShopState extends OverlayState {
 				verticalMargin = 10;
 			@Override
 			public float x() {
-				return backButton.x() + backButton.width()/2 + width()/2 + horizontalMargin;
+				return width()/2 + horizontalMargin;
 			}
 			
 			@Override
@@ -83,13 +83,16 @@ public class ShopState extends OverlayState {
 		this.scroller = new Scroller() {
 			@Override
 			public float lowerBound() {
-				return game.screenCenter().x - positionOf(0); // The position of the first item window.
+				return game.screenCenter().x - positionOf(1) +500; // The position of the first item window.
 			}
 			@Override
 			public float upperBound() {
-				return game.screenCenter().x + positionOf(itemWindows.size() - 1); // The position of the last item window.
+				return game.screenCenter().x + positionOf(itemWindows.size()-1)-500; // The position of the last item window.
 			}
 		};
+		
+		bubble0 = new Graphic(0, 0, Assets.getAtlasRegion(BUBBLE0) );
+		bubble1 = new Graphic(0, 0, Assets.getAtlasRegion(BUBBLE1) );
 	}
 
 	@Override
@@ -105,6 +108,7 @@ public class ShopState extends OverlayState {
 	public void enterState() {
 		System.out.println("Entering ShopState.");
 		scroller.setPosition(scroller.upperBound());
+		super.enterState();
 	}
 	@Override
 	public void exitState() { System.out.println("Exiting ShopState."); }
@@ -114,30 +118,47 @@ public class ShopState extends OverlayState {
 		itemWindows.add(new ItemWindow(game, purchase));
 	}
 	
+	//@Override
+	//protected Renderable superScreen() {
+		//return new Renderable() {
 	@Override
-	protected Renderable superScreen() {
-		return new Renderable() {
-			@Override
-			public void renderTo(SpriteBatch batch) {
-				window.renderTo(batch);
+	public void renderTo(SpriteBatch batch) {
+		super.renderTo(batch);
+		window.renderTo(batch);
+		
+		for (int windowIndex = 0; windowIndex != itemWindows.size(); windowIndex ++) {
+			itemWindows.get(windowIndex).renderTo(batch, 
+				200+scroller.position() - positionOf(windowIndex), window.y());
+			
+			bubble1.setScale(0.5f, 0.5f);
+			bubble1.setPosition(Game.game.screenCenter().add(
+					new Vector2((-itemWindows.size()*15)+windowIndex*30,-200)));
+			bubble1.renderTo(batch);
+			
+			if(windowIndex == itemWindows.size()-1-scroller.page()) {
 				
-				for (int windowIndex = 0; windowIndex != itemWindows.size(); windowIndex ++)
-					itemWindows.get(windowIndex).renderTo(batch, scroller.position() - positionOf(windowIndex), window.y());
-				
-				coinWindow.renderTo(batch);
-				
-				backButton.renderTo(batch);
+				bubble0.setPosition(Game.game.screenCenter().add(
+						new Vector2((-itemWindows.size()*15)+windowIndex*30,-200)));
+				bubble0.renderTo(batch);
 			}
-		};
+		}
+		
+		coinWindow.renderTo(batch);
+		
+		backButton.renderTo(batch);
 	}
+		//};
+	//}
 	
+	/*
 	@Override
 	protected Renderable subScreen() {
 		return subState;
 	}
+	*/
 	
 	private float positionOf(int itemWindow) {
-		return itemWindow * (windowWidth() + itemWindowHorizontalMargin);
+		return  itemWindow * (itemWindowHorizontalMargin);
 	}
 	
 	private float windowWidth() {

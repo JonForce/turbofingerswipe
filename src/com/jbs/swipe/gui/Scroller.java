@@ -9,7 +9,12 @@ public class Scroller implements Updatable {
 		position = 0,
 		damping = .95f,
 		velocity = 0f,
+		magnetStrength = 0.5f,
+		pageSize = 1024,
 		inputScale = .15f;
+	
+	int page = 0;
+	boolean touched = false;
 	
 	private final float
 		lowerBound, upperBound;
@@ -29,20 +34,28 @@ public class Scroller implements Updatable {
 	
 	@Override
 	public void updateWith(InputProxy input) {
-		if (position() < lowerBound() || position() > upperBound()) {
-			if (position() < lowerBound())
-				setPosition(lowerBound());
-			if (position() > upperBound())
-				setPosition(upperBound());
-			setVelocity(0);
-			return;
+		page = (int) Math.round(position()/pageSize);
+		
+		if (input.isTouched()) {
+			addVelocity(input.getDeltaX() * inputScale*2f);
+		} else {
+			//magnet force
+			float delta = (float)(page*pageSize)-position();
+			setVelocity((delta)*0.2f);
+			//System.out.println(page+" "+position());
 		}
 		
+		//physics update
 		setVelocity(velocity() * damping());
 		translate(velocity());
 		
-		if (input.isTouched())
-			addVelocity(input.getDeltaX() * inputScale);
+		//always clamp after translation
+		if (position() < lowerBound()) {
+			setPosition(lowerBound());
+		}
+		if (position() > upperBound()) {
+			setPosition(upperBound());
+		}
 	}
 	
 	/** Translate the Scroller's position by the specified amount. */
@@ -73,6 +86,11 @@ public class Scroller implements Updatable {
 	/** @return the Scroller's position. */
 	public float position() {
 		return position;
+	}
+	
+	/** the current page the scroller is on */
+	public int page() {
+		return page;
 	}
 	
 	/** @return the scrolling velocity. */

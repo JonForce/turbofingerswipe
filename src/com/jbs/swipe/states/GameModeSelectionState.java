@@ -12,6 +12,7 @@ import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.gui.GraphicAccessor;
+import com.jbs.swipe.gui.buttons.BackButton;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.levels.formation.FormationMode;
 
@@ -33,6 +34,7 @@ public final class GameModeSelectionState extends GameState {
 	/** The Buttons used to select the game-mode. */
 	private Button advancedButton, puzzleButton, normalButton;
 	private Graphic advancedText, puzzleText, normalText;
+	BackButton backButton;
 	
 	private final Vector2 center, offscreen;
 	
@@ -48,6 +50,7 @@ public final class GameModeSelectionState extends GameState {
 		//game.background().renderTo(batch);
 		
 		game.beginIODChange(batch, 3);
+			backButton.renderTo(batch);
 			advancedButton.renderTo(batch);
 			normalButton.renderTo(batch);
 //			puzzleButton.renderTo(batch);
@@ -60,6 +63,7 @@ public final class GameModeSelectionState extends GameState {
 	
 	@Override
 	public void updateApplication(Application app) {
+		backButton.updateWith(app.input);
 		advancedButton.updateWith(app.input);
 		normalButton.updateWith(app.input);
 //		puzzleButton.updateWith(app.input);
@@ -115,6 +119,21 @@ public final class GameModeSelectionState extends GameState {
 	private void initialize() {
 		final float ROTATION_ANIMATION_DURATION = 100f;
 		initializeBackground();
+		
+		this.backButton = new BackButton(game, new Vector2()) {
+			final float
+				horizontalMargin = 20,
+				verticalMargin = 5;
+			@Override
+			public float x() {
+				return width()/2 + horizontalMargin;
+			}
+			
+			@Override
+			public float y() {
+				return height()/2 + verticalMargin;
+			}
+		};
 		
 		// Initialize the Advanced GameMode Button.
 		advancedButton = new Button(offscreen.cpy(), Assets.getAtlasRegion(ADVANCED_CIRCLE)) {

@@ -57,7 +57,8 @@ public class ItemWindow implements Updatable, Renderable {
 			purchaseIcon.scale(MAX_ICON_WIDTH / purchaseIcon.width());
 		
 		this.primaryFont = new ShopFont();
-		primaryFont.scaleToWidth(MAX_WIDTH, purchase.name());
+		primaryFont.setScale(0.5f);
+		//primaryFont.scaleToWidth(MAX_WIDTH, purchase.name());
 		this.secondaryFont = new ShopFont();
 		
 		//secondaryFont.scaleToWidth(MAX_WIDTH, purchase.itemCount()+"");
@@ -81,7 +82,7 @@ public class ItemWindow implements Updatable, Renderable {
 		window.renderTo(batch);
 		
 		// Draw the name of the Purchase to the top of the window.
-		primaryFont.draw(batch, purchase.name(), new Vector2(window.x(), window.y() + window.height()/2.5f));
+		primaryFont.draw(batch, purchase.name(), new Vector2(window.x()+Game.game.screenWidth()/2, window.y() + window.height()/2.5f));
 		
 		// Draw the Purchase Icon to the center of the window.
 		purchaseIcon.renderTo(batch);
