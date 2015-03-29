@@ -6,13 +6,16 @@ import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.util.Updatable;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.shop.purchases.Purchase;
+import com.jbs.swipe.shop.purchases.TrapPurchase;
 import com.jbs.swipe.traps.Trap;
 
 public class ItemWindow implements Updatable, Renderable {
 	
 	protected final String
-		WINDOW_SOURCE = "assets/GUI/Shop/ItemWindow.png";
+		WINDOW_SOURCE = "Shop/ItemWindow";
 	
 	protected final Purchase purchase;
 	
@@ -25,7 +28,7 @@ public class ItemWindow implements Updatable, Renderable {
 	
 	public ItemWindow(final Game game, final Purchase purchase, Vector2 center) {
 		this.purchase = purchase;
-		this.window = new Graphic(center, game.getTexture(WINDOW_SOURCE));
+		this.window = new Graphic(center, Assets.getAtlasRegion(WINDOW_SOURCE));
 		
 		// Create the Purchase Button at the center of the window.
 		this.button = new PurchaseButton(game, purchase, new Vector2()) {
@@ -46,23 +49,20 @@ public class ItemWindow implements Updatable, Renderable {
 			}
 		};
 		
-		this.purchaseIcon = new Graphic(new Vector2(window.x(), window.y()), purchase.icon());
+		this.purchaseIcon = new Graphic(new Vector2(window.x(), window.y()+500f), purchase.icon());
 		final float
-			MAX_ICON_WIDTH = window.width() - iconMargin*2;
+			MAX_ICON_WIDTH = window.width() - iconMargin*2,
+			MAX_WIDTH = window.width() - titleMargin*2;
 		if (purchaseIcon.width() > MAX_ICON_WIDTH)
 			purchaseIcon.scale(MAX_ICON_WIDTH / purchaseIcon.width());
 		
 		this.primaryFont = new ShopFont();
-		final float
-			FONT_WIDTH = primaryFont.getBounds(purchase.name()).width,
-			MAX_WIDTH = window.width() - titleMargin*2;
-		// If the Trap's name wont fit in the window,
-		if (FONT_WIDTH > MAX_WIDTH)
-			// Scale the font so that it does.
-			primaryFont.setScale(MAX_WIDTH / FONT_WIDTH, 1f);
-		purchaseIcon.height();
+		primaryFont.scaleToWidth(MAX_WIDTH, purchase.name());
 		this.secondaryFont = new ShopFont();
-		secondaryFont.setScale(1/2f);
+		
+		//secondaryFont.scaleToWidth(MAX_WIDTH, purchase.itemCount()+"");
+		secondaryFont.setScale(0.5f);
+	
 	}
 	
 	public ItemWindow(Game game, Purchase purchase) {
@@ -76,17 +76,17 @@ public class ItemWindow implements Updatable, Renderable {
 	/** Render the ItemWindow at the specified center. */
 	public void renderTo(SpriteBatch batch, float x, float y) {
 		window.setPosition(x, y);
-		purchaseIcon.setPosition(x, y);
+		purchaseIcon.setPosition(x, y+40f);
 		
 		window.renderTo(batch);
 		
 		// Draw the name of the Purchase to the top of the window.
-		primaryFont.draw(batch, purchase.name(), new Vector2(window.x(), window.y() + window.height()/2 - window.height()/9));
+		primaryFont.draw(batch, purchase.name(), new Vector2(window.x(), window.y() + window.height()/2.5f));
 		
 		// Draw the Purchase Icon to the center of the window.
 		purchaseIcon.renderTo(batch);
 		// Render the item count at the bottom right corner of the Trap icon.
-		secondaryFont.draw(batch, "x" + purchase.itemCount(), new Vector2(purchaseIcon.x() + purchaseIcon.width()/2, purchaseIcon.y() - purchaseIcon.height()/2));
+		secondaryFont.draw(batch, "x" + purchase.itemCount(), new Vector2(purchaseIcon.x(), purchaseIcon.y() - purchaseIcon.height()/2));
 		
 		// Draw the Button to the window.
 		button.renderTo(batch);

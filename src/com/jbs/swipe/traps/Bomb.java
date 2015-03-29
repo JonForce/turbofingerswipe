@@ -190,12 +190,12 @@ abstract class BombState implements Renderable, Updatable {
 	public abstract void renderTo(SpriteBatch batch);
 	
 	protected void assertBombIsInScreen() {
-		if (bomb.x() + bomb.texture().getWidth() > bomb.game.screenWidth())
-			bomb.setPosition(bomb.game.screenWidth() - bomb.texture().getWidth(), bomb.y());
+		if (bomb.x() + bomb.texture().getRegionWidth() > bomb.game.screenWidth())
+			bomb.setPosition(bomb.game.screenWidth() - bomb.texture().getRegionWidth(), bomb.y());
 		if (bomb.x() < 0)
 			bomb.setPosition(0, bomb.y());
-		if (bomb.y() + bomb.texture().getHeight() > bomb.game.screenHeight())
-			bomb.setPosition(bomb.x(), bomb.game.screenHeight() - bomb.texture().getHeight());
+		if (bomb.y() + bomb.texture().getRegionHeight() > bomb.game.screenHeight())
+			bomb.setPosition(bomb.x(), bomb.game.screenHeight() - bomb.texture().getRegionHeight());
 		if (bomb.y() < 0)
 			bomb.setPosition(bomb.x(), 0);
 	}
@@ -213,8 +213,8 @@ class IdleState extends BombState {
 	public void updateWith(InputProxy input) {
 		// If the bomb isnt already grabbed and the input is touching,
 		if (!bomb.grabbed() && input.isTouched())
-			if (input.getX() > bomb.x() && input.getX() < bomb.x() + bomb.texture().getWidth())
-				if (input.getY() > bomb.y() && input.getY() < bomb.y() + bomb.texture().getHeight())
+			if (input.getX() > bomb.x() && input.getX() < bomb.x() + bomb.texture().getRegionWidth())
+				if (input.getY() > bomb.y() && input.getY() < bomb.y() + bomb.texture().getRegionHeight())
 					bomb.setState(new GrabbedState(bomb));
 		assertBombIsInScreen();
 	}
@@ -249,9 +249,9 @@ class LitState extends IdleState {
 		super(bomb);
 		flame = new SmallFlame() {
 			@Override
-			protected float x() { return bomb.x() + (float)Math.cos(Math.toRadians(rotation() + 90)) * bomb.texture().getHeight()/2; }
+			protected float x() { return bomb.x() + (float)Math.cos(Math.toRadians(rotation() + 90)) * bomb.texture().getRegionHeight()/2; }
 			@Override
-			protected float y() { return bomb.y() + (float)Math.sin(Math.toRadians(rotation() + 90)) * bomb.texture().getHeight()/2; }
+			protected float y() { return bomb.y() + (float)Math.sin(Math.toRadians(rotation() + 90)) * bomb.texture().getRegionHeight()/2; }
 		};
 	}
 	
@@ -347,9 +347,9 @@ class ThrownState extends LitState {
 		torque *= damping;
 		
 		// Bounce the Bomb off the edge of the screen.
-		if (bomb.x() + bomb.texture().getWidth() > bomb.game.screenWidth() || bomb.x() < 0)
+		if (bomb.x() + bomb.texture().getRegionWidth() > bomb.game.screenWidth() || bomb.x() < 0)
 			velocity.mul(-1, 1);
-		if (bomb.y() + bomb.texture().getHeight() > bomb.game.screenHeight() || bomb.y() < 0)
+		if (bomb.y() + bomb.texture().getRegionHeight() > bomb.game.screenHeight() || bomb.y() < 0)
 			velocity.mul(1, -1);
 	}
 	

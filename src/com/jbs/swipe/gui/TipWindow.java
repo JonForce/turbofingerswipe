@@ -3,13 +3,14 @@ package com.jbs.swipe.gui;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.rendering.Graphic;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.shop.ShopFont;
 
 public class TipWindow extends Graphic {
 	
 	private static final String
-		TIP_WINDOW = "assets/GUI/Tutorial/tipWindow.png";
+		TIP_WINDOW = "Tutorial/tipWindow";
 	
 	private Game game;
 	
@@ -17,12 +18,12 @@ public class TipWindow extends Graphic {
 	private String[] text;
 	
 	public TipWindow(Game game, Vector2 position, String[] text) {
-		super(position, game.getTexture(TIP_WINDOW));
+		super(position, Assets.getAtlasRegion(TIP_WINDOW));
 		
 		this.game = game;
 		
 		this.font = new ShopFont();
-		font.setScale(1/2f, 2/3f);
+		font.setScale(0.5f, 2/3f);
 		
 		this.text = text;
 	}

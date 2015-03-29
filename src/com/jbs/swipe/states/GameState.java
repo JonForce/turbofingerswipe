@@ -5,14 +5,16 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
+import com.jbs.swipe.effects.Animator;
 
 public class GameState implements ApplicationState {
 
 	public final String
-	BACKGROUND_SOURCE = "assets/GUI/MainMenu/bg.png",
-	BG_TOP_SOURCE = "assets/GUI/MainMenu/top.png",
-	BG_BOT_SOURCE = "assets/GUI/MainMenu/bottom.png";
+	BACKGROUND_SOURCE = "MainMenu/bg",
+	BG_TOP_SOURCE = "MainMenu/top",
+	BG_BOT_SOURCE = "MainMenu/bottom";
 	
 	protected Game game;
 	protected Graphic background, title, bgTop, bgBot;
@@ -31,9 +33,9 @@ public class GameState implements ApplicationState {
 	
 	/** Create and position the MainMenu's background. */
 	protected void initializeBackground() {
-		background = new Graphic(menuCenter, menuSize, game.getTexture(BACKGROUND_SOURCE));
-		bgTop = new Graphic(new Vector2(menuCenter.x,menuSize.y), menuSize, game.getTexture(BG_TOP_SOURCE));
-		bgBot = new Graphic(new Vector2(menuCenter.x,0), menuSize, game.getTexture(BG_BOT_SOURCE));
+		background = new Graphic(menuCenter, menuSize, Assets.getAtlasRegion(BACKGROUND_SOURCE));
+		bgTop = new Graphic(new Vector2(menuCenter.x,menuSize.y), menuSize, Assets.getAtlasRegion(BG_TOP_SOURCE));
+		bgBot = new Graphic(new Vector2(menuCenter.x,0), menuSize, Assets.getAtlasRegion(BG_BOT_SOURCE));
 	}
 	
 	@Override
@@ -43,12 +45,18 @@ public class GameState implements ApplicationState {
 		bgBot.renderTo(batch);
 	}
 
+	public void tweenBarOffset(Vector2 offset, float duration) {
+		new Animator(game).tweenGraphicTo(bgTop, 
+				bgTop.getPosition().add(offset), duration);
+		new Animator(game).tweenGraphicTo(bgBot, 
+				bgBot.getPosition().sub(offset), duration);
+	}
 	@Override
 	public void enterState() {
-		if(!initialized) {
+		//if(!initialized) {
 			initialized = true;
 			initializeBackground();
-		}
+		//}
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-package com.jbs.swipe.shop;
+package com.jbs.swipe.shop.purchases;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.jbs.swipe.User;
 import com.jbs.swipe.traps.Trap;
 
@@ -28,7 +28,7 @@ public class TrapPurchase implements Purchase {
 	}
 	
 	@Override
-	public Texture icon() {
+	public TextureRegion icon() {
 		return trap.icon();
 	}
 	

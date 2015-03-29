@@ -9,16 +9,18 @@ import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.framework.rendering.ui.Button;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.CoinWindow;
 import com.jbs.swipe.gui.Scroller;
 import com.jbs.swipe.gui.buttons.BackButton;
+import com.jbs.swipe.shop.purchases.Purchase;
 import com.jbs.swipe.states.OverlayState;
 
 public class ShopState extends OverlayState {
 	
 	private static final String
-		WINDOW_SOURCE = "assets/GUI/Shop/ShopWindow.png";
+		WINDOW_SOURCE = "Shop/ShopWindow";
 	
 	private final ApplicationState subState;
 	private final Graphic window;
@@ -30,7 +32,7 @@ public class ShopState extends OverlayState {
 	
 	private final float
 		// Each ItemWindow should be spaced out by n pixels.
-		itemWindowHorizontalMargin = 100;
+		itemWindowHorizontalMargin = 50;
 	
 	/** Create the Shop control structure.
 	 * @param subState The state that the Shop should be rendered on top of. */
@@ -39,7 +41,7 @@ public class ShopState extends OverlayState {
 		this.subState = subState;
 		this.billingAPI = billingAPI;
 		
-		this.window = new Graphic(game.screenCenter(), game.getTexture(WINDOW_SOURCE));
+		this.window = new Graphic(game.screenCenter(), Assets.getAtlasRegion(WINDOW_SOURCE));
 		window.setWidth(game.screenWidth());
 		
 		this.backButton = new BackButton(game, new Vector2()) {

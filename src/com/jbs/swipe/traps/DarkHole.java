@@ -7,8 +7,8 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.equations.Quad;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
@@ -221,7 +221,7 @@ public class DarkHole extends Trap<LevelState> implements Renderable, Updatable 
 	}
 	
 	@Override
-	public Texture icon() {
+	public TextureRegion icon() {
 		return game.getTexture("assets/Traps/"+trapName()+"Icon.png");
 	}
 	

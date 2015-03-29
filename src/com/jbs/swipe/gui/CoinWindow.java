@@ -4,23 +4,25 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.shop.ShopFont;
 
 public abstract class CoinWindow implements Renderable {
 	
 	private static final String
-		WINDOW_SOURCE = "assets/GUI/Shop/CoinWindow.png";
+		WINDOW_SOURCE = "Shop/CoinWindow";
 	
 	private Graphic window;
 	private ShopFont font;
 	
 	/** Create a utility for notifying the user of how many jbs coins he or she has. */
 	public CoinWindow(Game game) {
-		this.window = new Graphic(new Vector2(), game.getTexture(WINDOW_SOURCE));
+		this.window = new Graphic(new Vector2(), Assets.getAtlasRegion(WINDOW_SOURCE));
 		window.setPosition(x(), y());
 		
 		this.font = new ShopFont();
+		
 	}
 	
 	@Override
@@ -31,14 +33,15 @@ public abstract class CoinWindow implements Renderable {
 			text = coins() + "";
 		final float
 			// The horizontal offset of the text.
-			leftMargin = window.width() * 1/10f;
-		font.draw(batch, text, x() - widthOf(text)/2 + leftMargin, y() + heightOf(text)/2);
+			leftMargin = -60f;
+		font.scaleToWidth(100f, coins()+"");
+		font.drawAt(batch, text, x() + leftMargin, y() + heightOf(text)/2);
 	}
 	
 	/** Scale the window around it's center. */
 	public final void scale(float scalar) {
 		window.scale(scalar);
-		font.scale(scalar);
+		font.setScale(scalar);
 	}
 	
 	/** @return the width of the window. */

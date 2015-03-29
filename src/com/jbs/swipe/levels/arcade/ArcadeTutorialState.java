@@ -12,6 +12,7 @@ import com.jbs.framework.control.Application;
 import com.jbs.framework.control.ApplicationState;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.gui.TipWindow;
@@ -25,15 +26,15 @@ public class ArcadeTutorialState extends TutorialState {
 	
 	private static final String[]
 		TIP_SOURCES = new String[] {
-			"assets/GUI/Tutorial/ArcadeMode/Tip0.png",
-			"assets/GUI/Tutorial/ArcadeMode/Tip1.png",
-			"assets/GUI/Tutorial/ArcadeMode/Tip2.png" };
+			"Tutorial/ArcadeMode/Tip0",
+			"Tutorial/ArcadeMode/Tip1",
+			"Tutorial/ArcadeMode/Tip2" };
 	
 	private static final String
-		GOT_IT_PRESSED_SOURCE = "assets/GUI/Tutorial/GotItPressed.png",
-		GOT_IT_UNPRESSED_SOURCE = "assets/GUI/Tutorial/GotItUnpressed.png",
-		FINGER_SOURCE = "assets/GUI/Loading/Finger.png",
-		GAME_OVER_LOGO_SOURCE = "assets/GUI/Font/GameOverMessage.png";
+		GOT_IT_PRESSED_SOURCE = "Tutorial/GotItPressed",
+		GOT_IT_UNPRESSED_SOURCE = "Tutorial/GotItUnpressed",
+		FINGER_SOURCE = "Loading/Finger",
+		GAME_OVER_LOGO_SOURCE = "Font/GameOverMessage";
 	
 	private Graphic[] tips;
 	private Button gotItButton;
@@ -144,7 +145,7 @@ public class ArcadeTutorialState extends TutorialState {
 		initializeGotItButton();
 		
 		// Initialize the finger.
-		finger = new Graphic(new Vector2(0,0), game.getTexture(FINGER_SOURCE));
+		finger = new Graphic(new Vector2(0,0), Assets.getAtlasRegion(FINGER_SOURCE));
 		// Initialize the demonstration Tiles.
 		demoTiles = new SwipeTile[3];
 		for (int i = 0; i != demoTiles.length; i ++) {
@@ -152,7 +153,7 @@ public class ArcadeTutorialState extends TutorialState {
 			demoTiles[i].translate(0, tilesYOffset);
 		}
 		// Initialize the game-over logo.
-		gameOverLogo = new Graphic(game.screenCenter(), game.getTexture(GAME_OVER_LOGO_SOURCE));
+		gameOverLogo = new Graphic(game.screenCenter(), Assets.getAtlasRegion(GAME_OVER_LOGO_SOURCE));
 		gameOverLogo.translate(0, 150);
 	}
 	
@@ -364,7 +365,7 @@ public class ArcadeTutorialState extends TutorialState {
 		tips = new Graphic[5];
 		for (int i = 0; i != 3; i ++) {
 			// Create the tip-Graphic.
-			tips[i] = new Graphic(game.screenCenter(), game.getTexture(TIP_SOURCES[i]));
+			tips[i] = new Graphic(game.screenCenter(), Assets.getAtlasRegion(TIP_SOURCES[i]));
 			// Translate the Tip down and to the left.
 			tips[i].translate(-tips[i].width()/4, -tips[i].height()/2);
 		}
@@ -381,19 +382,19 @@ public class ArcadeTutorialState extends TutorialState {
 	 */
 	private void initializeGotItButton() {
 		// Initialize the Button with it's Unpressed and Pressed textures.
-		gotItButton = new Button(new Vector2(0,0), game.getTexture(GOT_IT_UNPRESSED_SOURCE), game.getTexture(GOT_IT_PRESSED_SOURCE)) {
+		gotItButton = new Button(new Vector2(0,0), Assets.getAtlasRegion(GOT_IT_UNPRESSED_SOURCE), Assets.getAtlasRegion(GOT_IT_PRESSED_SOURCE)) {
 			// Override the position of the Button's center to be relative to the current-tip window.
 			@Override
 			public float x() {
 				// The Center-x of the Button should be at the center of the current-tip's window.
-				return currentTip().x() - texture().getHeight()/2;
+				return currentTip().x() - texture().getRegionHeight()/2;
 			}
 			@Override
 			public float y() {
 				// The Center-y of the Button should be at the,
 				return
 						currentTip().y() - currentTip().height()/2 // Bottom of the Current-tip's window,
-						+ texture().getHeight() - 10; // With a positive y-offset.
+						+ texture().getRegionHeight() - 10; // With a positive y-offset.
 			}
 			// When the Button is released, use the next tip.
 			@Override

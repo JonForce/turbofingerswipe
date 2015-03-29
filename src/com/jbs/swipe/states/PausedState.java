@@ -99,9 +99,9 @@ public class PausedState extends OverlayState {
 		};
 		
 		// Translate the home-button right by it's width to make it not intersect the play-button
-		homeButton.translate(homeButton.texture().getWidth(), 0);
+		homeButton.translate(homeButton.width(), 0);
 		// Translate the restart-button left by it's width to make it not intersect the play-button.
-		restartButton.translate(-restartButton.texture().getWidth(), 0);
+		restartButton.translate(-restartButton.width(), 0);
 		
 		// Translate the home-button right by the desired button margin.
 		homeButton.translate(BUTTON_MARGIN, 0);

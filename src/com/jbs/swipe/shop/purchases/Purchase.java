@@ -1,6 +1,6 @@
-package com.jbs.swipe.shop;
+package com.jbs.swipe.shop.purchases;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.jbs.swipe.User;
 
 public interface Purchase {
@@ -10,7 +10,7 @@ public interface Purchase {
 	public void attemptPurchase(User user);
 	
 	/** @return the icon that denotes the item that may be bought. */
-	public Texture icon();
+	public TextureRegion icon();
 	
 	/** @return the name of the item to be bought. */
 	public String name();

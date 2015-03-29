@@ -35,7 +35,7 @@ public class SpinningButton implements Renderable, Updatable {
 	 * @param buttonSource The path to the file that contains the Button's primary Texture. */
 	public SpinningButton(Game game, Vector2 center, String buttonSource) {
 		this.game = game;
-		this.button = new Button(center, game.getTexture(buttonSource)) {
+		this.button = new Button(center, Game.getTextureFromAtlas(buttonSource)) {
 			@Override
 			public void onRelease() {
 				if (!triggered())

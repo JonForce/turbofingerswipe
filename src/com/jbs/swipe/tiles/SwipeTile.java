@@ -7,13 +7,14 @@ import aurelienribon.tweenengine.TweenCallback;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.io.InputProxy;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.Renderable;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.Swipe;
 import com.jbs.swipe.effects.Animator;
@@ -23,10 +24,10 @@ public class SwipeTile implements Renderable {
 	public final String
 		INCORRECT_SWIPE_SOUND_SOURCE = "assets/SFX/Incorrect.wav",
 		CORRECT_SWIPE_SOUND_SOURCE = "assets/SFX/Correct.wav",
-		BLUE_TILE_SOURCE = "assets/Tiles/3second.png",
-		YELLOW_TILE_SOURCE = "assets/Tiles/2second.png",
-		ORANGE_TILE_SOURCE = "assets/Tiles/1second.png",
-		RED_TILE_SOURCE = "assets/Tiles/halfsecond.png";
+		BLUE_TILE_SOURCE = "3second",
+		YELLOW_TILE_SOURCE = "2second",
+		ORANGE_TILE_SOURCE = "1second",
+		RED_TILE_SOURCE = "halfsecond";
 	
 	public static final float
 		DEFAULT_SWIPE_MAGNITUDE = 40f, // The default required distance of a correct swipe.
@@ -51,7 +52,7 @@ public class SwipeTile implements Renderable {
 		};
 	
 	private Graphic tile, arrow;
-	private Texture arrowGreen, arrowGray;
+	private TextureRegion arrowGreen, arrowGray;
 	
 	private Vector2
 		originalTileSize, // The width and height of the Tile graphic initially.
@@ -76,7 +77,7 @@ public class SwipeTile implements Renderable {
 	private TileState tileState;
 	private TileListener listener;
 	
-	public SwipeTile(final Game game, Vector2 swipeRequirement, Texture arrowGreen, Texture arrowGray, float timeToSwipe) {
+	public SwipeTile(final Game game, Vector2 swipeRequirement, TextureRegion arrowGreen, TextureRegion arrowGray, float timeToSwipe) {
 		this.game = game;
 		this.arrowGreen = arrowGreen;
 		this.arrowGray = arrowGray;
@@ -88,11 +89,11 @@ public class SwipeTile implements Renderable {
 		this.center = game.screenCenter();
 		
 		final SwipeTile swipeTile = this;
-		this.tile = new Graphic(new Vector2(x(), y()), game.getTexture(BLUE_TILE_SOURCE)) {
+		this.tile = new Graphic(new Vector2(x(), y()), Assets.getAtlasRegion(BLUE_TILE_SOURCE)) {
 			// Store the last Texture returned by the texture() method.
-			Texture lastTextureUsed;
+			TextureRegion lastTextureUsed;
 			// Texture to use if all else fails.
-			Texture defaultTexture = game.getTexture(BLUE_TILE_SOURCE);
+			TextureRegion defaultTexture = Assets.getAtlasRegion(BLUE_TILE_SOURCE);
 			
 			// The center of the tile Graphic is the center of the SwipeTile.
 			@Override
@@ -104,16 +105,16 @@ public class SwipeTile implements Renderable {
 				return swipeTile.y();
 			}
 			@Override
-			public Texture texture() {
-				final Texture textureToBeUsed;
+			public TextureRegion texture() {
+				final TextureRegion textureToBeUsed;
 				if (tileState() == TileState.BLUE)
-					textureToBeUsed = game.getTexture(BLUE_TILE_SOURCE);
+					textureToBeUsed = Assets.getAtlasRegion(BLUE_TILE_SOURCE);
 				else if (tileState() == TileState.YELLOW)
-					textureToBeUsed = game.getTexture(YELLOW_TILE_SOURCE);
+					textureToBeUsed = Assets.getAtlasRegion(YELLOW_TILE_SOURCE);
 				else if (tileState() == TileState.ORANGE)
-					textureToBeUsed = game.getTexture(ORANGE_TILE_SOURCE);
+					textureToBeUsed = Assets.getAtlasRegion(ORANGE_TILE_SOURCE);
 				else if (tileState() == TileState.RED)
-					textureToBeUsed = game.getTexture(RED_TILE_SOURCE);
+					textureToBeUsed = Assets.getAtlasRegion(RED_TILE_SOURCE);
 				// If the correct Texture to use cannot be determined, use the last Texture used.
 				else
 					if (lastTextureUsed == null)
@@ -124,10 +125,12 @@ public class SwipeTile implements Renderable {
 				this.lastTextureUsed = textureToBeUsed;
 				return textureToBeUsed;
 			}
+			
 			@Override
-			public void setTexture(Texture newTexture) {
+			public void setTexture(TextureRegion newTexture) {
 				throw new RuntimeException("Cannot set the Texture of the SwipeTile's tile. Change the SwipeTile's Texture by changing it's state.");
 			}
+			
 		};
 		this.arrow = new Graphic(new Vector2(x(), y()), arrowGray) {
 			// The center of the arrow is the center of the SwipeTile.
@@ -483,11 +486,14 @@ public class SwipeTile implements Renderable {
 	/** Set the State of the SwipeTile.
 	 * @param react Set to true if the Tile should react to its change in state. */
 	public void setState(TileState newState, boolean react) {
-		if (tileState == newState)
-			throw new RuntimeException("Cannot set a Tile to the state it is already in : " + newState);
-		if (!canChangeStateTo(newState))
-			throw new RuntimeException("Cannot set a Tile to " + newState + " when it is in it's " + tileState + " state.");
-		
+		if (tileState == newState) {
+			System.err.println("Cannot set a Tile to the state it is already in : " + newState);
+			return;
+		}
+		if (!canChangeStateTo(newState)){
+			System.err.println("Cannot set a Tile to " + newState + " when it is in it's " + tileState + " state.");
+			return;
+		}
 		TileState oldState = this.tileState;
 		this.tileState = newState;
 		refreshArrow();
@@ -576,21 +582,6 @@ public class SwipeTile implements Renderable {
 		return new Vector2(input.getX(touchID), input.getY(touchID));
 	}
 	
-	//not used locally you must have moved it out... TODO: cleanup when confirmed.
-	/*
-	private boolean checkAngle(float angle, float requiredAngle, float toleranceDegrees) {
-		// The minimum angle of the swipe required to return true.
-		float minimumAngle = requiredAngle - toleranceDegrees;
-		// The maximum angle of the swipe required to return true;
-		float maximumAngle = requiredAngle + toleranceDegrees;
-		if (angle > requiredAngle + 180)
-			angle -= (requiredAngle + 360);
-		// Return true when the swipe's angle is greater than the minimum angle
-		// and less than the maximum angle (Inclusively).
-		return angle >= minimumAngle && angle <= maximumAngle;
-	}
-	*/
-	
 	/**
 	 * @return a normalized Vector2 that represents a swipe with a magnitude of
 	 * 'magnitude' and direction of either up, left, right, or down.
@@ -608,13 +599,13 @@ public class SwipeTile implements Renderable {
 			throw new RuntimeException("Error in SwipeTile.createSwipe : Unknown direction " + direction);
 	}
 	
-	public static Texture getArrow(Game game, Direction direction, boolean green) {
+	public static TextureRegion getArrow(Game game, Direction direction, boolean green) {
 		// The head of the arrow's source is the same regardless of direction.
-		String header = "assets/GUI/Arrows/";
+		String header = "Arrows/";
 		// The footer of the file depends on whether we are retrieving the green or grey arrow.
-		String footer = !green? "arrow.png" : "arrowcorrect.png";
+		String footer = !green? "arrow" : "arrowcorrect";
 		
-		return game.getTexture(header+footer);
+		return Assets.getAtlasRegion(header+footer);
 	}
 	
 	/** @return a random Direction object. */

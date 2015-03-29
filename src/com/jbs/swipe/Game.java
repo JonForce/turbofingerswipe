@@ -10,7 +10,10 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.io.AudioProxy;
@@ -20,12 +23,12 @@ import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.LevelState;
 import com.jbs.swipe.shop.BillingAPI;
 import com.jbs.swipe.shop.DefaultBillingAPI;
-import com.jbs.swipe.shop.HugeCoinPurchase;
-import com.jbs.swipe.shop.LargeCoinPurchase;
 import com.jbs.swipe.shop.ShopState;
-import com.jbs.swipe.shop.SmallCoinPurchase;
-import com.jbs.swipe.shop.TinyCoinPurchase;
-import com.jbs.swipe.shop.TrapPurchase;
+import com.jbs.swipe.shop.purchases.HugeCoinPurchase;
+import com.jbs.swipe.shop.purchases.LargeCoinPurchase;
+import com.jbs.swipe.shop.purchases.SmallCoinPurchase;
+import com.jbs.swipe.shop.purchases.TinyCoinPurchase;
+import com.jbs.swipe.shop.purchases.TrapPurchase;
 import com.jbs.swipe.states.GameModeSelectionState;
 import com.jbs.swipe.states.LoadingState;
 import com.jbs.swipe.states.MainMenuState;
@@ -35,7 +38,7 @@ import com.jbs.swipe.traps.Bomb;
 import com.jbs.swipe.traps.DarkHole;
 
 public class Game extends Application {
-	
+	public static Game game;
 	public final boolean IS_STRICT = false;
 	
 	private FileHandle
@@ -69,9 +72,12 @@ public class Game extends Application {
 	
 	public Game(BillingAPI billingAPI, int virtualWidth, int virtualHeight) {
 		super(virtualWidth, virtualHeight);
+		game=this; //game should be a singleton so we don't have to pass it around everywhere.
 		this.billingAPI = billingAPI;
 		if (IS_STRICT)
 			System.out.println("Warning! Game IS_STRICT");
+		
+		Assets.init();
 	}
 	
 	public Game(int virtualWidth, int virtualHeight) {
@@ -99,26 +105,31 @@ public class Game extends Application {
 	
 	/** Retrieve the Texture from the Game's AssetManager. Throws RuntimeException if
 	 * the Game has not yet been created with it's create() method. */
-	public Texture getTexture(FileHandle textureSource) {
+	public TextureRegion getTexture(String textureSource) {
 		if (this.IS_STRICT)
 			// Assert that the Game has been created with it's create() method.
 			if (!this.isCreated())
 				throw new RuntimeException("Error in Game.getTexture() : Cannot get texture before Game is created.");
 			// Assert that the textureSource exists.
-			else if (!textureSource.exists())
+			/*else if (!textureSource.exists())
 				throw new RuntimeException("Error in Game.getTexture() : texture not found at path " + textureSource.path());
 			else if (!textureSource.extension().equals("png") && !textureSource.extension().equals("jpg"))
 				throw new RuntimeException("Error in Game.getTexture() : texture does not have a .png or .jpg file extension.");
-		
+		*/
 		// Retrieve the texture from the Game's assets.
-		return (Texture) assetManager.get(textureSource.path());
+		return new TextureRegion(Assets.get(textureSource,Texture.class));
+	}
+	
+	public static TextureRegion getTextureFromAtlas(String texture){
+		return Assets.get("assets/output/texturepack_0.txt",TextureAtlas.class).findRegion(texture);
 	}
 	
 	/** @return the Texture if it has been loaded from the Game's assets folder. */
+	/*
 	public final Texture getTexture(String fileLocation) {
 		return getTexture(Gdx.files.internal(fileLocation));
 	}
-	
+	*/
 	/** @return the Game's AudioProxy. This is the interface for using the Game's loaded Audio. */
 	public final AudioProxy audio() {
 		return this.audioProxy;
@@ -252,11 +263,8 @@ public class Game extends Application {
 		// Create our psuedo-random number generator.
 		random = new Random();
 		
-		// Create our Game's AssetManager.
-		assetManager = new AssetManager();
-		
 		// Create the Game's AudioProxy.
-		audioProxy = new AudioProxy(assetManager, this.IS_STRICT);
+		audioProxy = new AudioProxy(Assets.assets, this.IS_STRICT);
 		
 		tweenManager = new TweenManager();
 		// Register all the accessors with their respective classes.
@@ -356,5 +364,9 @@ public class Game extends Application {
 		}
 		
 		return shopState;
+	}
+
+	public static BitmapFont getFont(String fontFile) {
+		return game.loadingState.assetManager().get(fontFile, BitmapFont.class);
 	}
 }

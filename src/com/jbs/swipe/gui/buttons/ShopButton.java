@@ -7,7 +7,7 @@ public class ShopButton extends SpinningButton {
 
 	private static final String
 		//BACKLIGHT_SOURCE = "assets/GUI/Play/Light.png",
-		BUTTON_SOURCE = "assets/GUI/Shop/ShopIcon.png";
+		BUTTON_SOURCE = "Shop/ShopIcon";
 		//TEXT_SOURCE = "assets/GUI/Shop/ShopText.png";
 	
 	//private final float
@@ -18,6 +18,9 @@ public class ShopButton extends SpinningButton {
 		super(game, center, BUTTON_SOURCE);
 		//super.addSpinnerAboveButton(TEXT_SOURCE, textRotationDamping);
 		//super.addSpinnerBelowButton(BACKLIGHT_SOURCE, backlightRotationDamping);
+	}
+	public ShopButton(Game game, Vector2 center, String texture ) {
+		super(game,center,texture);
 	}
 	
 	@Override

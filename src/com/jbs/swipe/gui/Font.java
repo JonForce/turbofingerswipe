@@ -1,6 +1,5 @@
 package com.jbs.swipe.gui;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -14,7 +13,7 @@ public class Font {
 	
 	private static final int NUMBER_OF_DIGITS = 10;
 	
-	private Texture source;
+	private TextureRegion source;
 	private int sourceDigitWidth, sourceDigitHeight, alignment = ALIGNMENT_LEFT;
 	private Vector2 position;
 	
@@ -23,12 +22,12 @@ public class Font {
 	/*
 	 * Assumes there are 10 digits in sequential order in 1 row on the Source texture.
 	 */
-	public Font(Texture source) {
-		this.source = source;
+	public Font(TextureRegion textureRegion) {
+		this.source = textureRegion;
 		// Digit width is equal to the (totalSourceWidth)/(numberOfDigitsPerRow)
-		this.sourceDigitWidth = source.getWidth()/NUMBER_OF_DIGITS;
+		this.sourceDigitWidth = textureRegion.getRegionWidth()/NUMBER_OF_DIGITS;
 		// Digit height is equal to the (totalSourceHeight)/(numberOfDigitsPerColumn)
-		this.sourceDigitHeight = source.getHeight();
+		this.sourceDigitHeight = textureRegion.getRegionHeight();
 	}
 	
 	/* Set the default rendering position of the Font to (x, y). */

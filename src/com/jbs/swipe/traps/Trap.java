@@ -1,6 +1,6 @@
 package com.jbs.swipe.traps;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.jbs.swipe.Game;
 
 public abstract class Trap<Target> {
@@ -52,12 +52,12 @@ public abstract class Trap<Target> {
 	}
 	
 	/** @return the default Texture based on the Trap's name. */
-	public final Texture texture() {
+	public final TextureRegion texture() {
 		return game.getTexture("assets/Traps/" + trapName() + ".png");
 	}
 	
 	/** @return the Trap's desired icon. */
-	public Texture icon() {
+	public TextureRegion icon() {
 		return texture();
 	}
 	

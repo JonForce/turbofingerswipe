@@ -1,11 +1,12 @@
-package com.jbs.swipe.shop;
+package com.jbs.swipe.shop.purchases;
 
 import com.jbs.swipe.Game;
+import com.jbs.swipe.shop.BillingAPI;
 
 public class SmallCoinPurchase extends JBSCoinPurchase {
 	
 	public SmallCoinPurchase(Game game, BillingAPI billingAPI) {
-		super(game, billingAPI, "assets/GUI/Shop/Coins/AFewCoins.png", 3500);
+		super(game, billingAPI, "Shop/Coins/AFewCoins", 3500);
 	}
 	
 	@Override

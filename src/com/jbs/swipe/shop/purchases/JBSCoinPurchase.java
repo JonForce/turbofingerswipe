@@ -1,18 +1,21 @@
-package com.jbs.swipe.shop;
+package com.jbs.swipe.shop.purchases;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.User;
+import com.jbs.swipe.shop.BillingAPI;
+import com.jbs.swipe.shop.BillingCallback;
 
 public abstract class JBSCoinPurchase implements Purchase {
 	
 	private final BillingAPI billingAPI;
-	private final Texture icon;
+	private final TextureRegion icon;
 	private final int coins;
 	
 	public JBSCoinPurchase(Game game, BillingAPI billingAPI, String iconSource, int coins) {
 		this.billingAPI = billingAPI;
-		this.icon = game.getTexture(iconSource);
+		this.icon = Assets.getAtlasRegion(iconSource);
 		this.coins = coins;
 	}
 	
@@ -35,7 +38,7 @@ public abstract class JBSCoinPurchase implements Purchase {
 	}
 	
 	@Override
-	public final Texture icon() {
+	public final TextureRegion icon() {
 		return icon;
 	}
 	

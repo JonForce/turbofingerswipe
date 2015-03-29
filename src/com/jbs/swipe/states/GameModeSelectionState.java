@@ -8,22 +8,22 @@ import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.rendering.Graphic;
 import com.jbs.framework.rendering.ui.Button;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.gui.GraphicAccessor;
 import com.jbs.swipe.levels.arcade.ArcadeModeEasy;
 import com.jbs.swipe.levels.formation.FormationMode;
-import com.jbs.swipe.levels.puzzle.PuzzleMode;
 
 public final class GameModeSelectionState extends GameState {
 	
 	private static final String
-		NORMAL_TEXT = "assets/GUI/GameModeSelect/Normal.png",
-		NORMAL_CIRCLE = "assets/GUI/GameModeSelect/NormalCircle.png",
-		ADVANCED_TEXT = "assets/GUI/GameModeSelect/Advanced.png",
-		ADVANCED_CIRCLE = "assets/GUI/GameModeSelect/AdvancedCircle.png",
-		PUZZLE_TEXT = "assets/GUI/GameModeSelect/Puzzle.png",
-		PUZZLE_CIRCLE = "assets/GUI/GameModeSelect/PuzzleCircle.png";
+		NORMAL_TEXT = "GameModeSelect/Normal",
+		NORMAL_CIRCLE = "GameModeSelect/NormalCircle",
+		ADVANCED_TEXT = "GameModeSelect/Advanced",
+		ADVANCED_CIRCLE = "GameModeSelect/AdvancedCircle",
+		PUZZLE_TEXT = "GameModeSelect/Puzzle",
+		PUZZLE_CIRCLE = "GameModeSelect/PuzzleCircle";
 	
 	private final float
 		buttonMargin = 50, // The empty space in-between each button.
@@ -117,7 +117,7 @@ public final class GameModeSelectionState extends GameState {
 		initializeBackground();
 		
 		// Initialize the Advanced GameMode Button.
-		advancedButton = new Button(offscreen.cpy(), game.getTexture(ADVANCED_CIRCLE)) {
+		advancedButton = new Button(offscreen.cpy(), Assets.getAtlasRegion(ADVANCED_CIRCLE)) {
 			// When the Button is pressed, rotate it very quickly indefinitely.
 			public void onPress() {
 				new Animator(game)
@@ -129,7 +129,7 @@ public final class GameModeSelectionState extends GameState {
 			}
 		};
 		// Initialize the Normal GameMode Button.
-		normalButton = new Button(offscreen.cpy(), game.getTexture(NORMAL_CIRCLE)) {
+		normalButton = new Button(offscreen.cpy(), Assets.getAtlasRegion(NORMAL_CIRCLE)) {
 			// When the Button is pressed, rotate it very quickly indefinitely.
 			public void onPress() {
 				new Animator(game)
@@ -159,11 +159,11 @@ public final class GameModeSelectionState extends GameState {
 //			}
 //		};
 		
-		advancedText = new Graphic(offscreen.cpy(), game.getTexture(ADVANCED_TEXT)) {
+		advancedText = new Graphic(offscreen.cpy(), Assets.getAtlasRegion(ADVANCED_TEXT)) {
 			public float x() { return advancedButton.x(); }
 			public float y() { return advancedButton.y(); }
 		};
-		normalText = new Graphic(offscreen.cpy(), game.getTexture(NORMAL_TEXT)) {
+		normalText = new Graphic(offscreen.cpy(), Assets.getAtlasRegion(NORMAL_TEXT)) {
 			public float x() { return normalButton.x(); }
 			public float y() { return normalButton.y(); }
 		};

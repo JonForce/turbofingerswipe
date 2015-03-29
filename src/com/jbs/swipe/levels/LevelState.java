@@ -74,6 +74,8 @@ public abstract class LevelState extends GameState {
 		if (!initialized)
 			initialize();
 		super.enterState();
+		
+		this.tweenBarOffset(new Vector2(0,150), 300f);
 	}
 	
 	@Override

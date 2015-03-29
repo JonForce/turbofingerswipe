@@ -1,10 +1,12 @@
 package com.jbs.swipe.states;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.jbs.framework.control.Application;
 import com.jbs.framework.rendering.Graphic;
+import com.jbs.swipe.Assets;
 import com.jbs.swipe.Game;
 import com.jbs.swipe.effects.Animator;
 import com.jbs.swipe.gui.buttons.ShopButton;
@@ -15,7 +17,7 @@ import com.jbs.swipe.tiles.Direction;
 public abstract class MainMenuState extends GameState {
 	final float SLIDE_DURATION = 500;
 	
-	final String TITLE_SOURCE = "assets/GUI/MainMenu/Logo.png";
+	final String TITLE_SOURCE = "MainMenu/Logo";
 	
 	public final float
 		START_BUTTON_SCALE = 1f;
@@ -24,7 +26,7 @@ public abstract class MainMenuState extends GameState {
 		START_BUTTON_BOT_MARGIN = 150,
 		TITLE_TOP_MARGIN = 15;
 
-	protected SpinningButton startButton, shopButton;
+	protected SpinningButton startButton, shopButton, exitButton;
 
 	protected Graphic title;
 	
@@ -52,6 +54,7 @@ public abstract class MainMenuState extends GameState {
 		game.beginIODChange(batch, 3f);
 			startButton.renderTo(batch);
 			shopButton.renderTo(batch);
+			exitButton.renderTo(batch);
 		game.endIODChange(batch, 3f);
 		
 		game.beginIODChange(batch, 5f);
@@ -63,6 +66,7 @@ public abstract class MainMenuState extends GameState {
 	public void updateApplication(Application app) {
 		startButton.updateWith(app.input);
 		shopButton.updateWith(app.input);
+		exitButton.updateWith(app.input);
 	}
 	
 	protected abstract void exitMainMenu();
@@ -76,13 +80,13 @@ public abstract class MainMenuState extends GameState {
 	}
 	
 	/** @return the Texture of the MainMenu's background. */
-	public final Texture backgroundTexture() {
-		return game.getTexture(BACKGROUND_SOURCE);
+	public final TextureRegion backgroundTexture() {
+		return Assets.getAtlasRegion(BACKGROUND_SOURCE);
 	}
 	
 	/** @return the Texture of the title logo. */
-	public final Texture titleTexture() {
-		return game.getTexture(TITLE_SOURCE);
+	public final TextureRegion titleTexture() {
+		return Assets.getAtlasRegion(TITLE_SOURCE);
 	}
 	
 	/** @return the top center of the MainMenu. */
@@ -123,6 +127,19 @@ public abstract class MainMenuState extends GameState {
 		shopButton.scale(0.7f);
 		Vector2 p = initialShopButtonPosition();
 		shopButton.setPosition(p.x, p.y);
+		
+		
+		exitButton = new ShopButton(game, Vector2.Zero, "ExitButton"){
+			@Override
+			public void onTrigger() {
+				Gdx.app.exit();
+			}
+		};
+		// Scale the ShopButton down.
+		exitButton.scale(0.7f);
+		p = initialExitButtonPosition();
+		exitButton.setPosition(p.x, p.y);
+		
 	}
 	
 	private Vector2 initialTitlePosition() {
@@ -137,6 +154,11 @@ public abstract class MainMenuState extends GameState {
 		return initialStartButtonPosition()
 				// Translate the ShopButton right to get out of the StartButton's way.
 				.add(startButton.width()/2 + shopButton.width()/2+50, -startButton.height()+shopButton.height()/2);
+	}
+	private Vector2 initialExitButtonPosition() {
+		return initialStartButtonPosition()
+				// Translate the ShopButton right to get out of the StartButton's way.
+				.add(-startButton.width()/2 - shopButton.width()/2-50, -startButton.height()+shopButton.height()/2);
 	}
 
 }

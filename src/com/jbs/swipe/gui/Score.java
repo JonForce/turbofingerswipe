@@ -1,15 +1,13 @@
 package com.jbs.swipe.gui;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.rendering.Renderable;
 import com.jbs.swipe.Game;
 
 public class Score implements Renderable {
 	
-	private final FileHandle
-		FONT_SOURCE;
+	private final String
+		FONT_SOURCE = "assets/GUI/Font/Digits.png";
 	
 	public static final int
 		FONT_TOP_MARGIN = 10;
@@ -18,7 +16,6 @@ public class Score implements Renderable {
 	protected Font font;
 	
 	public Score(Game game) {
-		FONT_SOURCE = Gdx.files.internal("assets/GUI/Font/Digits.png");
 		
 		font = new Font(game.getTexture(FONT_SOURCE));
 		// Set the Font to render at the top-center of the Game's screen.

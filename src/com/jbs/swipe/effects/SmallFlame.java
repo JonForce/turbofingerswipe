@@ -1,7 +1,6 @@
 package com.jbs.swipe.effects;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.jbs.framework.io.InputProxy;
@@ -10,8 +9,9 @@ import com.jbs.framework.util.Updatable;
 
 public abstract class SmallFlame implements Renderable, Updatable {
 	
-	private static final FileHandle
-		SOURCE = Gdx.files.internal("assets/ParticleEffects/SmallFlame");
+	private static final String
+		SOURCE = "assets/ParticleEffects/SmallFlame.fx",
+		IMAGES = "assets/ParticleEffects/Images";
 	
 	private ParticleEffect effect;
 	
@@ -26,7 +26,7 @@ public abstract class SmallFlame implements Renderable, Updatable {
 	
 	public SmallFlame() {
 		effect = new ParticleEffect();
-		effect.load(SOURCE, Gdx.files.internal("assets/ParticleEffects/Images"));
+		effect.load(Gdx.files.internal(SOURCE), Gdx.files.internal(IMAGES));
 		effect.start();
 		startTime = System.currentTimeMillis();
 	}

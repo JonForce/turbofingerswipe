@@ -136,16 +136,16 @@ public abstract class GameOverState implements ApplicationState {
 		};
 		
 		// Translate the Buttons' bottom edges to reside on the middle of the bottom of the screen.
-		homeButton.setPosition((int)SCREEN_CENTER.x, homeButton.texture().getHeight() / 2);
-		restartButton.setPosition((int)SCREEN_CENTER.x, restartButton.texture().getHeight() / 2);
+		homeButton.setPosition((int)SCREEN_CENTER.x, homeButton.height() / 2);
+		restartButton.setPosition((int)SCREEN_CENTER.x, restartButton.height() / 2);
 		
 		// Translate the Buttons vertically by the desired bottom margin.
 		homeButton.translate(0, BUTTON_BOTTOM_MARGIN);
 		restartButton.translate(0, BUTTON_BOTTOM_MARGIN);
 		
 		// Separate the Buttons.
-		homeButton.translate(homeButton.texture().getWidth() / 2, 0);
-		restartButton.translate(- restartButton.texture().getWidth() / 2, 0);
+		homeButton.translate(homeButton.width() / 2, 0);
+		restartButton.translate(- restartButton.width() / 2, 0);
 		
 		// Translate the Buttons away from each other to achieve the desired spacing.
 		homeButton.translate(BUTTON_SPACING / 2, 0);

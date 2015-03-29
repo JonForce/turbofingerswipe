@@ -10,7 +10,8 @@ import com.jbs.framework.util.Updatable;
 public class Explosion implements Renderable, Updatable {
 	
 	private static final String
-		SOURCE = "assets/ParticleEffects/Explosion";
+		SOURCE = "assets/ParticleEffects/Explosion.fx",
+		IMAGES = "assets/ParticleEffects/Images";
 	
 	protected final ParticleEffect particleEffect;
 	
@@ -29,7 +30,7 @@ public class Explosion implements Renderable, Updatable {
 	 * @param autoStart True if the explosion should begin immediately. */
 	public Explosion(String source) {
 		particleEffect = new ParticleEffect();
-		particleEffect.load(Gdx.files.internal(source), Gdx.files.internal("assets/ParticleEffects/Images"));
+		particleEffect.load(Gdx.files.internal(source), Gdx.files.internal(IMAGES));
 		particleEffect.start();
 	}
 	
