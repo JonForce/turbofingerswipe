@@ -46,4 +46,7 @@ public class TrapPurchase implements Purchase {
 	public String cost() {
 		return "" + trap.cost();
 	}
+
+	@Override
+	public String desc() { return "[Trap desc]"; }
 }

@@ -35,7 +35,7 @@ public class SwipeTile implements Renderable {
 		MAXIMUM_GREEN_TIME = 500f; // The maximum time the SwipeTile will remain green before triggering the onCorrectSwipe() event.
 	
 	private static float
-		defaultVolume = .5f; // The default volume to play the SwipeTile's Sounds at.
+		defaultVolume = .25f; // The default volume to play the SwipeTile's Sounds at.
 	
 	public static enum TileState {
 		BLUE, YELLOW, ORANGE, RED, CORRECTLY_SWIPED, INCORRECTLY_SWIPED, EXPIRED, FINISHED

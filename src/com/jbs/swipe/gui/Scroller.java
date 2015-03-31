@@ -13,7 +13,7 @@ public class Scroller implements Updatable {
 		pageSize = 1024,
 		inputScale = .15f;
 	
-	int page = 0;
+	int page = 5;
 	boolean touched = false;
 	
 	private final float
@@ -34,14 +34,21 @@ public class Scroller implements Updatable {
 	
 	@Override
 	public void updateWith(InputProxy input) {
-		page = (int) Math.round(position()/pageSize);
+		//page = (int) Math.round(position()/pageSize);
 		
 		if (input.isTouched()) {
-			addVelocity(input.getDeltaX() * inputScale*2f);
+			//addVelocity(input.getDeltaX() * inputScale*2f);
+			if(!touched) {
+				if(input.getDeltaX()>10) { page++; touched = true; }
+				if(input.getDeltaX()<-10) { page--; touched = true; }
+				page = Math.max(0,  Math.min(5, page));
+			}
 		} else {
+			
+			touched = false;
 			//magnet force
 			float delta = (float)(page*pageSize)-position();
-			setVelocity((delta)*0.2f);
+			setVelocity((delta)*0.1f);
 			//System.out.println(page+" "+position());
 		}
 		

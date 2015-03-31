@@ -35,7 +35,7 @@ public abstract class CoinWindow implements Renderable {
 			// The horizontal offset of the text.
 			leftMargin = -60f;
 		font.scaleToBounds(100f, 30f, coins()+"");
-		font.drawAt(batch, text, x() + leftMargin, y() + heightOf(text)/2);
+		font.drawAt(batch, text, x() + leftMargin, y() + heightOf(text)/2 +10);
 	}
 	
 	/** Scale the window around it's center. */

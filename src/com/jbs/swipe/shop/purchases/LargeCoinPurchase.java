@@ -23,4 +23,7 @@ public class LargeCoinPurchase extends JBSCoinPurchase {
 	protected String sku() {
 		return "large_coin_purchase.cx1v5eqse3";
 	}
+
+	@Override
+	public String desc() { return "[Item desc]"; }
 }

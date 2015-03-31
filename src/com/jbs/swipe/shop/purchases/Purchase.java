@@ -20,4 +20,6 @@ public interface Purchase {
 	
 	/** @return the cost of the Purchase. */
 	public String cost();
+
+	public String desc();
 }

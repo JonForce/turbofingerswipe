@@ -23,4 +23,7 @@ public class TinyCoinPurchase extends JBSCoinPurchase {
 	protected String sku() {
 		return "tiny_coin_purchase.2li2h77nnczxuhh";
 	}
+
+	@Override
+	public String desc() { return "[Item desc]"; }
 }

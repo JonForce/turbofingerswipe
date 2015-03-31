@@ -21,7 +21,7 @@ public class ItemWindow implements Updatable, Renderable {
 	
 	private final Graphic window, purchaseIcon;
 	private final PurchaseButton button;
-	private final ShopFont primaryFont, secondaryFont;
+	private final ShopFont primaryFont, secondaryFont, descFont;
 	private final float
 		titleMargin = 15,
 		iconMargin = 100;
@@ -63,6 +63,9 @@ public class ItemWindow implements Updatable, Renderable {
 		
 		//secondaryFont.scaleToWidth(MAX_WIDTH, purchase.itemCount()+"");
 		secondaryFont.setScale(0.5f);
+		
+		descFont = new ShopFont();
+		descFont.setScale(0.15f);
 	
 	}
 	
@@ -81,11 +84,16 @@ public class ItemWindow implements Updatable, Renderable {
 		
 		window.renderTo(batch);
 		
+		primaryFont.setScale(0.5f);
 		// Draw the name of the Purchase to the top of the window.
 		primaryFont.draw(batch, purchase.name(), new Vector2(window.x()+Game.game.screenWidth()/2, window.y() + window.height()/2.5f));
+		descFont.setScale(0.25f);
+		descFont.draw(batch, purchase.desc(), new Vector2(window.x()+Game.game.screenWidth()/2, window.y() + 100));
 		
 		// Draw the Purchase Icon to the center of the window.
 		purchaseIcon.renderTo(batch);
+		
+		secondaryFont.setScale(0.5f);
 		// Render the item count at the bottom right corner of the Trap icon.
 		secondaryFont.draw(batch, "x" + purchase.itemCount(), new Vector2(purchaseIcon.x(), purchaseIcon.y() - purchaseIcon.height()/2));
 		
